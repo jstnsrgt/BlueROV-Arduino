@@ -131,6 +131,7 @@ void loop() {
   yInput = analogRead(A1);
   xInput = analogRead(A2);
 
+/*
   //need the absolute value to test largest change easily, not change direction
   xDiff = fabs(accelX - xInput); 
   yDiff = fabs(accelY - yInput);
@@ -175,28 +176,27 @@ void loop() {
         prop2Hover = prop2Hover++;
     }  
   }
+*/
 
-/*
   //Height Alteration, Velocity: +ve = dropping, -ve = lifting
   if(targetVelocity > velocity)
   {
     if(prop1Hover > 1540)
-      prop1Hover = prop1Hover-3;
+      prop1Hover = prop1Hover--;
     if(prop2Hover > 1540)
-      prop2Hover = prop2Hover-3;
+      prop2Hover = prop2Hover--;
     if(prop5Hover > 1540)
-      prop5Hover = prop5Hover-3;
+      prop5Hover = prop5Hover--;
   }
   else
   {
     if(prop1Hover < 1885)
-      prop1Hover = prop1Hover+3;
+      prop1Hover = prop1Hover++;
     if(prop2Hover < 1885)
-      prop2Hover = prop2Hover+3;
+      prop2Hover = prop2Hover++;
     if(prop2Hover < 1885)
-      prop5Hover = prop5Hover+3;
+      prop5Hover = prop5Hover++;
   }
-  */
 
   prop1.writeMicroseconds(prop1Hover);
   prop2.writeMicroseconds(prop2Hover);
