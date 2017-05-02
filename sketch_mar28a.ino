@@ -1,3 +1,28 @@
+#include <RTFusionRTQF.h>
+#include <RTIMU.h>
+#include <RTIMUBNO055.h>
+#include <RTIMUGD20HM303D.h>
+#include <RTIMUGD20HM303DLHC.h>
+#include <RTIMUGD20M303DLHC.h>
+#include <RTIMULibDefs.h>
+#include <RTIMULSM9DS0.h>
+#include <RTIMUMPU9150.h>
+#include <RTIMUMPU9250.h>
+#include <RTIMUSettings.h>
+#include <RTMath.h>
+#include <RTPressure.h>
+#include <RTPressureBMP180.h>
+#include <RTPressureDefs.h>
+#include <RTPressureLPS25H.h>
+#include <RTPressureMS5611.h>
+#include <RTArduLink.h>
+#include <RTArduLinkDefs.h>
+#include <RTArduLinkDemoDefs.h>
+#include <RTArduLinkHAL.h>
+#include <RTArduLinkUtils.h>
+#include <I2Cdev.h>
+#include <CalLib.h>
+
 #include <MS5837.h>
 #include <Servo.h>
 #include <Wire.h>
@@ -57,7 +82,7 @@ void setup() {
   Wire.begin();
   pSensor.init();
   pSensor.setFluidDensity(FRESHWATER);
-  delay(10000);
+  delay(3000);
 
 
 
@@ -104,8 +129,8 @@ void setup() {
 void loop() {
 
   //Read sensor inputs
-  pSensor.read(); //DO NOT REMOVE
-  yInput = analogRead(A1);
+  pSensor.read(); //Pressure
+  yInput = analogRead(A1); //Rotational Position
   xInput = analogRead(A2);
 
   //Save information from last cycle and assign info for current cycle
@@ -116,7 +141,7 @@ void loop() {
 
   //calculate velocity data
   pDiff = currentDepth - targetDepth; //pdif: +ve = lower than target, -ve = higher than target
-  targetVelocity = pDiff/(currentMilli - previousMilli); //float value in meters, +ve = dropping, -ve = lifting
+  targetVelocity = pDiff/(currentMilli - previousMilli); //float value in meters, +ve = needs to lift, -ve = needs to fall
   velocity = (currentDepth - previousDepth)/(currentMilli - previousMilli); //float value in meters, +ve = dropping, -ve = lifting
 
   
@@ -164,9 +189,9 @@ void loop() {
     }  
   }
 
-
+  //target, +ve = needs to lift, -ve = needs to fall
   //Height Alteration, Velocity: +ve = dropping, -ve = lifting
-  if(targetVelocity > velocity)
+  if((velocity < 0 && target < 0) || (velocity > 0 && target < 0))
   {
     if(prop1Hover > 1540)
       prop1Hover = prop1Hover-3;
@@ -175,7 +200,7 @@ void loop() {
     if(prop5Hover > 1540)
       prop5Hover = prop5Hover-3;
   }
-  else
+  else if((velocity < 0 && target > 0) || (velocity > 0 && target > 0))
   {
     if(prop1Hover < 1885)
       prop1Hover = prop1Hover+3;
