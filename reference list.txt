@@ -1,0 +1,28 @@
+Sketches
+
+Mar 21st A
+reads accelerometer data and prints to serial
+
+Mar 28th A
+Older iteration of Hover algorithm
+
+Mar 28th B
+Current iteration of hover algorithm
+
+Apr 6th A
+Test each motor one at a time at 5%
+
+Apr 6th B
+Test forward thrust with static vertical thrust up to ~50%
+
+Apr 6th C
+Test forward thrust up to 25% with no vertical thrust
+
+May 1st A
+place pressure data of float size into EEPROM ~4 times a sec
+
+May 1st B
+retrieve EEPROM data as floats and print to serial
+
+May 11th A
+updating Hover program with new control system
