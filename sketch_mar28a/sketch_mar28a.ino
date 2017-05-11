@@ -12,6 +12,7 @@ MS5837 pSensor;
 #define FRESHWATER 997
 #define SEAWATER 1029
 
+//8530
 
 //pin terminal masks
 byte groundPin = 1;
@@ -28,6 +29,7 @@ int xInput, yInput, zInput;
 int xDiff, yDiff, pDiff;
 
 float currentDepth, previousDepth;
+float startDepth;
 int currentMilli, previousMilli;
 
 float velocity;
@@ -57,17 +59,12 @@ void setup() {
   Wire.begin();
   pSensor.init();
   pSensor.setFluidDensity(FRESHWATER);
-  delay(3000);
-
 
 /*
   pinMode(A0, INPUT); // Z
   pinMode(A1, INPUT); // Y
   pinMode(A2, INPUT); // X
   */
-  pinMode(groundPin, OUTPUT);
-  digitalWrite(groundPin, LOW);
-  
   prop1.attach(propPin1);
   prop2.attach(propPin2);
   prop3.attach(propPin3);
@@ -82,15 +79,20 @@ void setup() {
   prop5.writeMicroseconds(MOTOR_STOP);
   prop6.writeMicroseconds(MOTOR_STOP);
 
+
+  delay(3000);
+  
+  pSensor.read(); //read sensor
+  startDepth = pSensor.depth(); //set initial depth 
+  targetDepth = startDepth - 0.05; //set target depth
   
   prop1.writeMicroseconds(MOTOR_HOVER_START_1);
   prop2.writeMicroseconds(MOTOR_HOVER_START_2);
   prop5.writeMicroseconds(MOTOR_HOVER_START_5);
+
   
   //pCurrent = analogRead()
-  targetDepth = 0.20; //set target depth
-  //pSensor.read(); //read sensor
-  //currentDepth = pSensor.depth(); //set initial depth 
+  
   //currentMilli = millis(); //begin tracking time
   //delay(40); //delay for good measure
   
@@ -156,9 +158,9 @@ void loop() {
 
   if(currentDepth < targetDepth - 0.01)
   {
-    prop1.writeMicroseconds(getMicrosecondsForward(5));
-    prop2.writeMicroseconds(getMicrosecondsForward(5));
-    prop5.writeMicroseconds(getMicrosecondsForward(10));
+    prop1.writeMicroseconds(getMicrosecondsForward(2.5));
+    prop2.writeMicroseconds(getMicrosecondsForward(2.5));
+    prop5.writeMicroseconds(getMicrosecondsForward(5));
   }
   else if(currentDepth > targetDepth + 0.01)
   {

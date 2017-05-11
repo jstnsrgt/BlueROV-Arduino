@@ -33,6 +33,7 @@ float velocity;
 float targetVelocity;
 
 float targetDepth;
+float startDepth;
 
 int accelX;
 int accelY;
@@ -76,9 +77,6 @@ void setup() {
   accelY = analogRead(A1);
   accelX = analogRead(A2);
   
-  pinMode(groundPin, OUTPUT);
-  digitalWrite(groundPin, LOW);
-  
   prop1.attach(propPin1);
   prop2.attach(propPin2);
   prop3.attach(propPin3);
@@ -93,15 +91,17 @@ void setup() {
   prop5.writeMicroseconds(MOTOR_STOP);
   prop6.writeMicroseconds(MOTOR_STOP);
 
+  delay(1000); 
+  pSensor.read(); //read sensor
+  currentDepth = startDepth = pSensor.depth(); //set initial depth  
+  targetDepth = startDepth - 0.10; //set target depth
+  
+  currentMilli = millis(); //begin tracking time
   
   prop1.writeMicroseconds(MOTOR_HOVER_START_1);
   prop2.writeMicroseconds(MOTOR_HOVER_START_2);
   prop5.writeMicroseconds(MOTOR_HOVER_START_5);
-  delay(1000);  
-  targetDepth = 0.15; //set target depth
-  pSensor.read(); //read sensor
-  currentDepth = pSensor.depth(); //set initial depth 
-  currentMilli = millis(); //begin tracking time
+ 
   delay(40); //delay for good measure
   
 }
@@ -206,7 +206,7 @@ void loop() {
     if(velocity < targetVelocity) //if moving down too fast, increase thrust
     {
       if(prop1Hover < 1899)
-        prop1Hover+pDiff*Kp + abs();
+        prop1Hover++;
       if(prop2Hover < 1899)
         prop2Hover++;
       if(prop1Hover < 1899)
