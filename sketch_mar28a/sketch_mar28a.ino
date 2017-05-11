@@ -1,28 +1,3 @@
-#include <RTFusionRTQF.h>
-#include <RTIMU.h>
-#include <RTIMUBNO055.h>
-#include <RTIMUGD20HM303D.h>
-#include <RTIMUGD20HM303DLHC.h>
-#include <RTIMUGD20M303DLHC.h>
-#include <RTIMULibDefs.h>
-#include <RTIMULSM9DS0.h>
-#include <RTIMUMPU9150.h>
-#include <RTIMUMPU9250.h>
-#include <RTIMUSettings.h>
-#include <RTMath.h>
-#include <RTPressure.h>
-#include <RTPressureBMP180.h>
-#include <RTPressureDefs.h>
-#include <RTPressureLPS25H.h>
-#include <RTPressureMS5611.h>
-#include <RTArduLink.h>
-#include <RTArduLinkDefs.h>
-#include <RTArduLinkDemoDefs.h>
-#include <RTArduLinkHAL.h>
-#include <RTArduLinkUtils.h>
-#include <I2Cdev.h>
-#include <CalLib.h>
-
 #include <MS5837.h>
 #include <Servo.h>
 #include <Wire.h>
@@ -63,9 +38,9 @@ float targetDepth;
 int accelX;
 int accelY;
 
-int prop1Hover = MOTOR_HOVER_START_1;
-int prop2Hover = MOTOR_HOVER_START_2;
-int prop5Hover = MOTOR_HOVER_START_5;
+//int prop1Hover = MOTOR_HOVER_START_1;
+//int prop2Hover = MOTOR_HOVER_START_2;
+//int prop5Hover = MOTOR_HOVER_START_5;
 
 //gains may be implemented again
 float xyGain = 0.2; //set the gain for the speed based on the level correction changes
@@ -85,12 +60,13 @@ void setup() {
   delay(3000);
 
 
-
+/*
   pinMode(A0, INPUT); // Z
   pinMode(A1, INPUT); // Y
   pinMode(A2, INPUT); // X
   pinMode(groundPin, OUTPUT);
   digitalWrite(groundPin, LOW);
+  */
   
   prop1.attach(propPin1);
   prop2.attach(propPin2);
@@ -106,12 +82,6 @@ void setup() {
   prop5.writeMicroseconds(MOTOR_STOP);
   prop6.writeMicroseconds(MOTOR_STOP);
 
-  pSensor.read();
-  while(pSensor.depth() < 0.02)
-  {
-    pSensor.read();
-    delay(200);  
-  }
   
   prop1.writeMicroseconds(MOTOR_HOVER_START_1);
   prop2.writeMicroseconds(MOTOR_HOVER_START_2);
@@ -122,7 +92,7 @@ void setup() {
   //pSensor.read(); //read sensor
   //currentDepth = pSensor.depth(); //set initial depth 
   //currentMilli = millis(); //begin tracking time
-  delay(40); //delay for good measure
+  //delay(40); //delay for good measure
   
 }
 
