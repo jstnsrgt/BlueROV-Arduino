@@ -64,9 +64,9 @@ void setup() {
   pinMode(A0, INPUT); // Z
   pinMode(A1, INPUT); // Y
   pinMode(A2, INPUT); // X
+  */
   pinMode(groundPin, OUTPUT);
   digitalWrite(groundPin, LOW);
-  */
   
   prop1.attach(propPin1);
   prop2.attach(propPin2);
