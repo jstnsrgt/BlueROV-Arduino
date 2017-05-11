@@ -119,9 +119,9 @@ void setup() {
   
   //pCurrent = analogRead()
   targetDepth = 0.20; //set target depth
-  pSensor.read(); //read sensor
-  currentDepth = pSensor.depth(); //set initial depth 
-  currentMilli = millis(); //begin tracking time
+  //pSensor.read(); //read sensor
+  //currentDepth = pSensor.depth(); //set initial depth 
+  //currentMilli = millis(); //begin tracking time
   delay(40); //delay for good measure
   
 }
@@ -130,21 +130,16 @@ void loop() {
 
   //Read sensor inputs
   pSensor.read(); //Pressure
-  yInput = analogRead(A1); //Rotational Position
-  xInput = analogRead(A2);
+  //yInput = analogRead(A1); //Rotational Position
+  //xInput = analogRead(A2);
 
   //Save information from last cycle and assign info for current cycle
-  previousMilli = currentMilli;
-  currentMilli = millis();
-  previousDepth = currentDepth;
+  //previousDepth = currentDepth;
   currentDepth = pSensor.depth();
 
   //calculate velocity data
-  pDiff = currentDepth - targetDepth; //pdif: +ve = lower than target, -ve = higher than target
-  targetVelocity = pDiff/(currentMilli - previousMilli); //float value in meters, +ve = needs to lift, -ve = needs to fall
-  velocity = (currentDepth - previousDepth)/(currentMilli - previousMilli); //float value in meters, +ve = dropping, -ve = lifting
-
-  
+  //pDiff = currentDepth - targetDepth; //pdif: +ve = lower than target, -ve = higher than target
+  /*
   //need the absolute value to test largest change easily, not change direction
   xDiff = fabs(accelX - xInput); 
   yDiff = fabs(accelY - yInput);
@@ -187,35 +182,8 @@ void loop() {
       if(prop2Hover < 1899)
         prop2Hover++;
     }  
-  }
+  }*/
 
-  //target, +ve = needs to lift, -ve = needs to fall
-  //Height Alteration, Velocity: +ve = dropping, -ve = lifting
-  if((velocity < 0 && target < 0) || (velocity > 0 && target < 0))
-  {
-    if(prop1Hover > 1540)
-      prop1Hover = prop1Hover-3;
-    if(prop2Hover > 1540)
-      prop2Hover = prop2Hover-3;
-    if(prop5Hover > 1540)
-      prop5Hover = prop5Hover-3;
-  }
-  else if((velocity < 0 && target > 0) || (velocity > 0 && target > 0))
-  {
-    if(prop1Hover < 1885)
-      prop1Hover = prop1Hover+3;
-    if(prop2Hover < 1885)
-      prop2Hover = prop2Hover+3;
-    if(prop5Hover < 1885)
-      prop5Hover = prop5Hover+3;
-  }
-
-
-  prop1.writeMicroseconds(prop1Hover);
-  prop2.writeMicroseconds(prop2Hover);
-  prop5.writeMicroseconds(prop5Hover);
-  
-/*
   if(currentDepth < targetDepth - 0.01)
   {
     prop1.writeMicroseconds(getMicrosecondsForward(5));
@@ -228,30 +196,10 @@ void loop() {
     prop2.writeMicroseconds(getMicrosecondsForward(7.5));
     prop5.writeMicroseconds(getMicrosecondsForward(15));
   }
-  
-  delay(200);
-*/
-
-/*
-  //pSensor.readTestCase();
-  pSensor.read();
-
-  Serial.print("Pressure: "); 
-  Serial.print(pSensor.pressure()); 
-  Serial.println(" mbar");
-  
-  Serial.print("Temperature: "); 
-  Serial.print(pSensor.temperature()); 
-  Serial.println(" deg C");
-  
-  Serial.print("Depth: "); 
-  Serial.print(pSensor.depth()); 
-  Serial.println(" m");
-  
-  Serial.print("Altitude: "); 
-  Serial.print(pSensor.altitude()); 
-  Serial.println(" m above mean sea level");
-
-  delay(2000);
-*/
+  else
+  {
+    prop1.writeMicroseconds(getMicrosecondsForward(6.5));
+    prop2.writeMicroseconds(getMicrosecondsForward(6.5));
+    prop5.writeMicroseconds(getMicrosecondsForward(13));
+  }
 }

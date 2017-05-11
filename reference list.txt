@@ -4,7 +4,7 @@ Mar 21st A
 reads accelerometer data and prints to serial
 
 Mar 28th A
-Older iteration of Hover algorithm
+Older iteration of Hover algorithm, uses set values based on pressure depth, no accel
 
 Mar 28th B
 Current iteration of hover algorithm
