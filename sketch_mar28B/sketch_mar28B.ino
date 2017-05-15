@@ -6,6 +6,18 @@
 #include <math.h>
 #include <EEPROM.h>
 
+#include "I2Cdev.h"
+#include "RTIMUSettings.h"
+#include "RTIMU.h"
+#include "RTFusionRTQF.h" 
+#include "CalLib.h"
+
+RTIMU *imu;                                           // the IMU object
+RTFusionRTQF fusion;                                  // the fusion object
+RTIMUSettings settings;                               // the settings object
+
+RTVector3 xyz;
+
 MS5837 pSensor;
 //probably unnecessary unless tested in seawater
 #define FRESHWATER 997
@@ -64,18 +76,28 @@ Servo prop6;
 void setup() {
   Wire.begin();
 
+  
+  // create the imu object
+  imu = RTIMU::createIMU(&settings);
+  
+  // Slerp power controls the fusion and can be between 0 and 1
+  // 0 means that only gyros are used, 1 means that only accels/compass are used
+  // In-between gives the fusion mix.
+  fusion.setSlerpPower(0.02);
+
+  // use of sensors in the fusion algorithm can be controlled here
+  // change any of these to false to disable that sensor
+  fusion.setGyroEnable(true);
+  fusion.setAccelEnable(true);
+  fusion.setCompassEnable(true);
+
+
+  
   pSensor.init();
   pSensor.setFluidDensity(FRESHWATER);
   
-
-
-  pinMode(A1, INPUT); // Y
-  pinMode(A2, INPUT); // X
-
   pinMode(13,OUTPUT); //Ready LED
 
-  accelY = analogRead(A1);
-  accelX = analogRead(A2);
   
   prop1.attach(propPin1);
   prop2.attach(propPin2);
@@ -106,8 +128,13 @@ void setup() {
   
 }
 void loop() {
+  imu->IMURead();
+  delay(400);
   //Read sensor inputs
   pSensor.read(); //Pressure
+  xyz = fusion.getFusionPose();
+
+  
   yInput = analogRead(A1); //value decreases when side with motors 1 and 3 drops lower, value increases when side with motors 2 and 4 drops lower
   xInput = analogRead(A2); //value decreses pitching down, increases pitching up
 
