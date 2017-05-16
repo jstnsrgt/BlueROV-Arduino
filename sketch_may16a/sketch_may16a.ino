@@ -1,7 +1,3 @@
-#include <Servo.h>
-#include "Conversions.h"
-#include "MotorSpeedDefinitions.h"
-
 
 #include <Wire.h>
 #include "I2Cdev.h"
@@ -11,18 +7,11 @@
 #include "CalLib.h"
 #include <EEPROM.h>
 
-//Map the PWM pins on the board a corresponding propeller pin name
-byte propPin1 = 2;
-byte propPin2 = 3;
-byte propPin3 = 4;
-byte propPin4 = 5;
-byte propPin5 = 6;
-byte propPin6 = 7;
-
-
 RTIMU *imu;                                           // the IMU object
 RTFusionRTQF fusion;                                  // the fusion object
 RTIMUSettings settings;                               // the settings object
+
+//  DISPLAY_INTERVAL sets the rate at which results are displayed
 
 #define DISPLAY_INTERVAL  300                         // interval between pose displays
 
@@ -34,60 +23,15 @@ unsigned long lastDisplay;
 unsigned long lastRate;
 int sampleCount;
 
-
-//Choose 4 analogue pins for battery cell voltage input
-#define BATTERY_INPUT_1 A4 //Cell 1
-#define BATTERY_INPUT_2 A5 //Cell 2
-#define BATTERY_INPUT_3 A6 //Cell 3
-#define BATTERY_INPUT_4 A7 //Cell 4
-
-
-
-//Each output will be treated as a servo controller
-//as the Blue Robitics Basic ESC accepts PWM as input
-Servo prop1;
-Servo prop2;
-Servo prop3;
-Servo prop4;
-Servo prop5;
-Servo prop6;
-
-/* ESC INPUT
- * PWM duty cycle
- * ESC translates microseconds of pulse width into motor output
- * Stop Motor:    1500 Microsecond PW
- * Forward:       ~ 1525(1%) to 1900(100%) Microsecond PW
- * Reverse:       ~ 1475(1%) down to 1100(100%) Mircosecond PW
- */
- int accelY, accelX;
-
-void setup() {
-  // Telling each servo object which port to use
-  int errcode;
+void setup()
+{
+    int errcode;
   
-  Serial.begin(SERIAL_PORT_SPEED);
-  Wire.begin();
-  imu = RTIMU::createIMU(&settings);                        // create the imu object
- 
+    Serial.begin(SERIAL_PORT_SPEED);
+    Wire.begin();
+    imu = RTIMU::createIMU(&settings);                        // create the imu object
   
-  prop1.attach(propPin1);
-  prop2.attach(propPin2);
-  prop3.attach(propPin3);
-  prop4.attach(propPin4);
-  prop5.attach(propPin5);
-  prop6.attach(propPin6);
-
-  
-
-
-  prop1.writeMicroseconds(MOTOR_STOP);
-  prop2.writeMicroseconds(MOTOR_STOP);
-  prop3.writeMicroseconds(MOTOR_STOP);
-  prop4.writeMicroseconds(MOTOR_STOP);
-  prop5.writeMicroseconds(MOTOR_STOP);
-  prop6.writeMicroseconds(MOTOR_STOP);
-
-  Serial.print("ArduinoIMU starting using device "); Serial.println(imu->IMUName());
+    Serial.print("ArduinoIMU starting using device "); Serial.println(imu->IMUName());
     if ((errcode = imu->IMUInit()) < 0) {
         Serial.print("Failed to init IMU: "); Serial.println(errcode);
     }
@@ -111,16 +55,12 @@ void setup() {
     
     fusion.setGyroEnable(true);
     fusion.setAccelEnable(true);
-    fusion.setCompassEnable(false);
-  
-  delay(5000);
-  
-  // Wait for speed controllers to initialise
+    fusion.setCompassEnable(true);
 }
 
-
-void loop() {
-  unsigned long now = millis();
+void loop()
+{  
+    unsigned long now = millis();
     unsigned long delta;
     int loopCount = 1;
   
@@ -150,4 +90,3 @@ void loop() {
         }
     }
 }
-

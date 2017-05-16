@@ -1,0 +1,404 @@
+ArduinoIMU starting using device MPU-9150
+No valid compass calibration data
+Pose: roll:-1.41 pitch:-7.63 yaw:7.77
+Pose: roll:-1.56 pitch:-7.60 yaw:7.72
+Pose: roll:-1.52 pitch:-7.55 yaw:7.81
+Sample rate: 51, calculating gyro bias
+Pose: roll:-1.43 pitch:-7.48 yaw:7.85
+Pose: roll:-1.33 pitch:-7.40 yaw:7.88
+Pose: roll:-1.23 pitch:-7.34 yaw:7.98
+Sample rate: 51, calculating gyro bias
+Pose: roll:-1.15 pitch:-7.30 yaw:8.06
+Pose: roll:-1.09 pitch:-7.27 yaw:8.07
+Pose: roll:-1.03 pitch:-7.25 yaw:8.10
+Sample rate: 51, calculating gyro bias
+Pose: roll:-0.99 pitch:-7.23 yaw:8.08
+Pose: roll:-0.98 pitch:-7.22 yaw:8.15
+Pose: roll:-0.94 pitch:-7.21 yaw:8.17
+Pose: roll:-0.92 pitch:-7.20 yaw:8.21
+Sample rate: 51, calculating gyro bias
+Pose: roll:-0.89 pitch:-7.20 yaw:8.13
+Pose: roll:-0.87 pitch:-7.20 yaw:8.09
+Pose: roll:-0.87 pitch:-7.21 yaw:8.05
+Sample rate: 50, gyro bias valid
+Pose: roll:-0.87 pitch:-7.20 yaw:8.08
+Pose: roll:-0.88 pitch:-7.19 yaw:8.06
+Pose: roll:-0.88 pitch:-7.18 yaw:8.00
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.85 pitch:-7.16 yaw:7.91
+Pose: roll:-0.85 pitch:-7.19 yaw:8.08
+Pose: roll:-0.86 pitch:-7.18 yaw:8.20
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.86 pitch:-7.19 yaw:8.31
+Pose: roll:-0.81 pitch:-7.21 yaw:8.30
+Pose: roll:-0.81 pitch:-7.18 yaw:8.40
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.82 pitch:-7.18 yaw:8.39
+Pose: roll:-0.83 pitch:-7.18 yaw:8.34
+Pose: roll:-0.83 pitch:-7.19 yaw:8.29
+Pose: roll:-0.84 pitch:-7.18 yaw:8.23
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.87 pitch:-7.15 yaw:8.29
+Pose: roll:-0.87 pitch:-7.17 yaw:8.35
+Pose: roll:-0.79 pitch:-7.13 yaw:8.14
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.82 pitch:-7.12 yaw:8.06
+Pose: roll:-0.82 pitch:-7.14 yaw:8.02
+Pose: roll:-0.83 pitch:-7.16 yaw:8.02
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.79 pitch:-7.20 yaw:8.04
+Pose: roll:-0.85 pitch:-7.17 yaw:8.05
+Pose: roll:-0.87 pitch:-7.18 yaw:8.05
+Pose: roll:-0.87 pitch:-7.19 yaw:8.09
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.86 pitch:-7.18 yaw:8.12
+Pose: roll:-0.86 pitch:-7.19 yaw:8.15
+Pose: roll:-0.86 pitch:-7.18 yaw:8.05
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.87 pitch:-7.19 yaw:8.10
+Pose: roll:-0.86 pitch:-7.20 yaw:8.05
+Pose: roll:-0.88 pitch:-7.20 yaw:8.04
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.88 pitch:-7.20 yaw:8.05
+Pose: roll:-0.89 pitch:-7.17 yaw:8.11
+Pose: roll:-0.89 pitch:-7.17 yaw:8.13
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.89 pitch:-7.20 yaw:8.10
+Pose: roll:-0.88 pitch:-7.17 yaw:8.16
+Pose: roll:-0.89 pitch:-7.17 yaw:8.18
+Pose: roll:-0.88 pitch:-7.17 yaw:8.13
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.86 pitch:-7.17 yaw:8.16
+Pose: roll:-0.84 pitch:-7.19 yaw:8.11
+Pose: roll:-0.85 pitch:-7.19 yaw:7.97
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.85 pitch:-7.18 yaw:8.02
+Pose: roll:-0.87 pitch:-7.17 yaw:8.04
+Pose: roll:-0.88 pitch:-7.16 yaw:8.09
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.89 pitch:-7.16 yaw:8.06
+Pose: roll:-0.88 pitch:-7.15 yaw:8.07
+Pose: roll:-0.80 pitch:-7.12 yaw:8.12
+Sample rate: 51, gyro bias valid
+Pose: roll:3.44 pitch:-7.26 yaw:7.55
+Pose: roll:9.90 pitch:-7.43 yaw:5.44
+Pose: roll:12.67 pitch:-7.49 yaw:4.66
+Pose: roll:14.81 pitch:-7.51 yaw:3.92
+Sample rate: 50, gyro bias valid
+Pose: roll:16.95 pitch:-7.52 yaw:3.16
+Pose: roll:17.92 pitch:-7.52 yaw:2.66
+Pose: roll:18.05 pitch:-7.53 yaw:2.36
+Sample rate: 51, gyro bias valid
+Pose: roll:17.72 pitch:-7.51 yaw:2.31
+Pose: roll:18.40 pitch:-7.51 yaw:1.90
+Pose: roll:18.23 pitch:-7.51 yaw:1.87
+Sample rate: 51, gyro bias valid
+Pose: roll:18.68 pitch:-7.51 yaw:1.77
+Pose: roll:19.08 pitch:-7.51 yaw:1.56
+Pose: roll:19.32 pitch:-7.51 yaw:1.45
+Sample rate: 51, gyro bias valid
+Pose: roll:19.20 pitch:-7.50 yaw:1.35
+Pose: roll:19.37 pitch:-7.50 yaw:1.21
+Pose: roll:19.52 pitch:-7.51 yaw:1.18
+Pose: roll:19.61 pitch:-7.51 yaw:1.06
+Sample rate: 50, gyro bias valid
+Pose: roll:19.81 pitch:-7.50 yaw:0.95
+Pose: roll:19.88 pitch:-7.50 yaw:0.92
+Pose: roll:20.06 pitch:-7.51 yaw:0.89
+Sample rate: 51, gyro bias valid
+Pose: roll:20.25 pitch:-7.50 yaw:0.74
+Pose: roll:19.66 pitch:-7.49 yaw:0.86
+Pose: roll:19.88 pitch:-7.51 yaw:0.74
+Sample rate: 51, gyro bias valid
+Pose: roll:20.38 pitch:-7.50 yaw:0.72
+Pose: roll:20.78 pitch:-7.50 yaw:0.61
+Pose: roll:21.12 pitch:-7.50 yaw:0.54
+Sample rate: 51, gyro bias valid
+Pose: roll:21.10 pitch:-7.50 yaw:0.47
+Pose: roll:21.05 pitch:-7.50 yaw:0.56
+Pose: roll:21.19 pitch:-7.50 yaw:0.60
+Pose: roll:21.40 pitch:-7.50 yaw:0.47
+Sample rate: 50, gyro bias valid
+Pose: roll:21.48 pitch:-7.49 yaw:0.45
+Pose: roll:21.71 pitch:-7.49 yaw:0.35
+Pose: roll:21.71 pitch:-7.49 yaw:0.22
+Sample rate: 51, gyro bias valid
+Pose: roll:21.71 pitch:-7.50 yaw:0.25
+Pose: roll:21.75 pitch:-7.50 yaw:0.31
+Pose: roll:21.90 pitch:-7.49 yaw:0.31
+Sample rate: 51, gyro bias valid
+Pose: roll:20.95 pitch:-7.50 yaw:0.27
+Pose: roll:13.41 pitch:-7.48 yaw:1.55
+Pose: roll:2.60 pitch:-7.26 yaw:3.98
+Sample rate: 51, gyro bias valid
+Pose: roll:0.23 pitch:-7.35 yaw:5.30
+Pose: roll:-0.06 pitch:-7.33 yaw:6.03
+Pose: roll:-0.24 pitch:-7.32 yaw:6.56
+Pose: roll:-0.37 pitch:-7.32 yaw:6.91
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.47 pitch:-7.29 yaw:7.21
+Pose: roll:-0.54 pitch:-7.29 yaw:7.46
+Pose: roll:-0.59 pitch:-7.28 yaw:7.58
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.64 pitch:-7.28 yaw:7.74
+Pose: roll:-2.20 pitch:-7.48 yaw:8.01
+Pose: roll:-1.60 pitch:-7.47 yaw:8.07
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.87 pitch:-7.37 yaw:8.05
+Pose: roll:-0.85 pitch:-7.38 yaw:8.02
+Pose: roll:-0.85 pitch:-7.38 yaw:8.05
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.86 pitch:-7.39 yaw:8.07
+Pose: roll:-0.86 pitch:-7.40 yaw:8.05
+Pose: roll:-0.86 pitch:-7.41 yaw:8.03
+Pose: roll:-0.88 pitch:-7.41 yaw:7.91
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.89 pitch:-7.40 yaw:7.88
+Pose: roll:-0.89 pitch:-7.40 yaw:7.97
+Pose: roll:-0.89 pitch:-7.40 yaw:8.05
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.87 pitch:-7.40 yaw:8.04
+Pose: roll:-0.87 pitch:-7.40 yaw:8.05
+Pose: roll:-0.89 pitch:-7.41 yaw:8.10
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.86 pitch:-7.42 yaw:8.14
+Pose: roll:-0.87 pitch:-7.38 yaw:8.13
+Pose: roll:-0.87 pitch:-7.39 yaw:8.06
+Pose: roll:-0.86 pitch:-7.40 yaw:8.01
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.87 pitch:-7.41 yaw:8.00
+Pose: roll:-0.87 pitch:-7.40 yaw:7.96
+Pose: roll:-0.86 pitch:-7.40 yaw:7.93
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.85 pitch:-7.40 yaw:7.89
+Pose: roll:-0.86 pitch:-7.40 yaw:7.95
+Pose: roll:-0.86 pitch:-7.42 yaw:7.93
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.75 pitch:-7.40 yaw:8.05
+Pose: roll:-0.64 pitch:-7.36 yaw:8.05
+Pose: roll:-0.33 pitch:-7.37 yaw:8.05
+Sample rate: 50, gyro bias valid
+Pose: roll:1.28 pitch:-7.43 yaw:7.76
+Pose: roll:3.43 pitch:-7.49 yaw:7.23
+Pose: roll:5.15 pitch:-7.54 yaw:6.78
+Pose: roll:6.43 pitch:-7.58 yaw:6.48
+Sample rate: 51, gyro bias valid
+Pose: roll:7.90 pitch:-7.60 yaw:5.93
+Pose: roll:9.01 pitch:-7.62 yaw:5.57
+Pose: roll:10.02 pitch:-7.64 yaw:5.18
+Sample rate: 51, gyro bias valid
+Pose: roll:10.61 pitch:-7.66 yaw:5.03
+Pose: roll:11.92 pitch:-7.68 yaw:4.60
+Pose: roll:12.48 pitch:-7.68 yaw:4.31
+Sample rate: 51, gyro bias valid
+Pose: roll:13.69 pitch:-7.69 yaw:4.01
+Pose: roll:14.40 pitch:-7.69 yaw:3.76
+Pose: roll:15.25 pitch:-7.71 yaw:3.33
+Sample rate: 50, gyro bias valid
+Pose: roll:14.49 pitch:-7.70 yaw:3.24
+Pose: roll:13.29 pitch:-7.69 yaw:3.39
+Pose: roll:8.40 pitch:-7.61 yaw:4.18
+Pose: roll:3.64 pitch:-7.49 yaw:5.37
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.05 pitch:-7.48 yaw:7.05
+Pose: roll:-0.44 pitch:-7.54 yaw:7.30
+Pose: roll:-0.55 pitch:-7.54 yaw:7.52
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.63 pitch:-7.53 yaw:7.73
+Pose: roll:-0.69 pitch:-7.52 yaw:7.91
+Pose: roll:-0.74 pitch:-7.54 yaw:8.02
+Sample rate: 50, gyro bias valid
+Pose: roll:-0.78 pitch:-7.52 yaw:8.11
+Pose: roll:-0.79 pitch:-7.52 yaw:8.17
+Pose: roll:-0.83 pitch:-7.52 yaw:8.18
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.84 pitch:-7.53 yaw:8.24
+Pose: roll:-0.84 pitch:-7.54 yaw:8.22
+Pose: roll:-0.84 pitch:-7.53 yaw:8.23
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.84 pitch:-7.54 yaw:8.24
+Pose: roll:-0.85 pitch:-7.53 yaw:8.22
+Pose: roll:-0.86 pitch:-7.53 yaw:8.25
+Pose: roll:-0.87 pitch:-7.52 yaw:8.27
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.86 pitch:-7.51 yaw:8.34
+Pose: roll:-1.29 pitch:-7.62 yaw:8.53
+Pose: roll:-0.98 pitch:-7.38 yaw:8.97
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.64 pitch:-4.05 yaw:8.72
+Pose: roll:-0.59 pitch:1.27 yaw:8.80
+Pose: roll:-0.54 pitch:4.82 yaw:8.92
+Sample rate: 50, gyro bias valid
+Pose: roll:-0.48 pitch:7.11 yaw:8.56
+Pose: roll:-0.44 pitch:8.56 yaw:8.19
+Pose: roll:-0.44 pitch:9.51 yaw:7.87
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.43 pitch:10.05 yaw:7.87
+Pose: roll:-0.39 pitch:12.20 yaw:7.81
+Pose: roll:-0.37 pitch:13.67 yaw:7.78
+Pose: roll:-0.36 pitch:14.50 yaw:7.77
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.35 pitch:14.22 yaw:7.72
+Pose: roll:-0.32 pitch:16.49 yaw:6.82
+Pose: roll:-0.33 pitch:17.21 yaw:6.80
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.32 pitch:18.65 yaw:6.64
+Pose: roll:-0.29 pitch:20.41 yaw:6.92
+Pose: roll:-0.27 pitch:20.45 yaw:7.10
+Sample rate: 50, gyro bias valid
+Pose: roll:-0.23 pitch:20.66 yaw:7.25
+Pose: roll:-0.29 pitch:16.66 yaw:7.72
+Pose: roll:-0.49 pitch:3.91 yaw:8.45
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.61 pitch:-3.31 yaw:8.56
+Pose: roll:-0.77 pitch:-6.42 yaw:8.38
+Pose: roll:-0.77 pitch:-6.82 yaw:8.59
+Pose: roll:-0.85 pitch:-7.03 yaw:8.54
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.88 pitch:-7.16 yaw:8.49
+Pose: roll:-0.88 pitch:-7.27 yaw:8.48
+Pose: roll:-0.89 pitch:-7.34 yaw:8.35
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.89 pitch:-7.38 yaw:8.31
+Pose: roll:-0.89 pitch:-7.42 yaw:8.30
+Pose: roll:-0.87 pitch:-7.46 yaw:8.34
+Sample rate: 50, gyro bias valid
+Pose: roll:-0.88 pitch:-7.49 yaw:8.36
+Pose: roll:-0.76 pitch:-7.48 yaw:8.37
+Pose: roll:-0.77 pitch:-7.48 yaw:8.39
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.78 pitch:-7.49 yaw:8.36
+Pose: roll:-0.80 pitch:-7.50 yaw:8.33
+Pose: roll:-0.81 pitch:-7.51 yaw:8.31
+Pose: roll:-1.03 pitch:-8.05 yaw:8.56
+Sample rate: 51, gyro bias valid
+Pose: roll:-1.31 pitch:-13.20 yaw:8.26
+Pose: roll:-1.72 pitch:-20.36 yaw:7.82
+Pose: roll:-1.92 pitch:-25.21 yaw:8.01
+Sample rate: 51, gyro bias valid
+Pose: roll:-1.97 pitch:-26.71 yaw:8.22
+Pose: roll:-1.98 pitch:-27.98 yaw:8.31
+Pose: roll:-2.05 pitch:-29.50 yaw:8.51
+Sample rate: 51, gyro bias valid
+Pose: roll:-2.13 pitch:-31.63 yaw:8.76
+Pose: roll:-2.19 pitch:-32.75 yaw:8.96
+Pose: roll:-2.24 pitch:-33.61 yaw:9.15
+Sample rate: 51, gyro bias valid
+Pose: roll:-2.23 pitch:-33.51 yaw:9.20
+Pose: roll:-2.22 pitch:-33.22 yaw:9.51
+Pose: roll:-2.23 pitch:-33.22 yaw:9.67
+Sample rate: 51, gyro bias valid
+Pose: roll:-2.25 pitch:-34.11 yaw:9.67
+Pose: roll:-2.37 pitch:-36.91 yaw:9.83
+Pose: roll:-2.76 pitch:-45.20 yaw:9.62
+Pose: roll:-2.97 pitch:-48.48 yaw:9.95
+Sample rate: 51, gyro bias valid
+Pose: roll:-3.04 pitch:-49.04 yaw:10.29
+Pose: roll:-3.12 pitch:-49.58 yaw:10.60
+Pose: roll:-3.11 pitch:-49.63 yaw:10.63
+Sample rate: 51, gyro bias valid
+Pose: roll:-3.06 pitch:-48.93 yaw:10.61
+Pose: roll:-3.02 pitch:-48.37 yaw:10.60
+Pose: roll:-3.10 pitch:-48.97 yaw:10.89
+Sample rate: 51, gyro bias valid
+Pose: roll:-3.14 pitch:-50.46 yaw:11.08
+Pose: roll:-3.43 pitch:-54.23 yaw:11.61
+Pose: roll:-3.57 pitch:-55.28 yaw:11.93
+Pose: roll:-3.66 pitch:-57.04 yaw:11.71
+Sample rate: 51, gyro bias valid
+Pose: roll:-4.06 pitch:-57.95 yaw:12.68
+Pose: roll:-4.25 pitch:-59.73 yaw:13.07
+Pose: roll:-4.41 pitch:-60.67 yaw:13.55
+Sample rate: 51, gyro bias valid
+Pose: roll:-4.53 pitch:-61.85 yaw:13.54
+Pose: roll:-4.62 pitch:-62.48 yaw:13.63
+Pose: roll:-4.63 pitch:-62.62 yaw:13.91
+Sample rate: 51, gyro bias valid
+Pose: roll:-4.50 pitch:-61.87 yaw:13.81
+Pose: roll:-4.07 pitch:-58.99 yaw:13.12
+Pose: roll:-3.69 pitch:-55.25 yaw:13.08
+Sample rate: 50, gyro bias valid
+Pose: roll:-3.07 pitch:-48.65 yaw:12.47
+Pose: roll:-1.99 pitch:-31.36 yaw:12.77
+Pose: roll:-1.71 pitch:-21.52 yaw:12.36
+Pose: roll:-0.95 pitch:-13.58 yaw:11.12
+Sample rate: 51, gyro bias valid
+Pose: roll:-1.42 pitch:-11.47 yaw:11.70
+Pose: roll:-1.17 pitch:-11.13 yaw:11.14
+Pose: roll:-1.21 pitch:-10.89 yaw:10.82
+Sample rate: 51, gyro bias valid
+Pose: roll:-1.11 pitch:-10.74 yaw:10.54
+Pose: roll:-1.07 pitch:-10.61 yaw:10.41
+Pose: roll:-1.05 pitch:-10.51 yaw:10.31
+Sample rate: 51, gyro bias valid
+Pose: roll:-1.00 pitch:-10.45 yaw:10.16
+Pose: roll:-0.99 pitch:-10.40 yaw:10.09
+Pose: roll:-0.99 pitch:-10.36 yaw:10.03
+Sample rate: 51, gyro bias valid
+Pose: roll:-1.03 pitch:-10.33 yaw:9.99
+Pose: roll:-1.02 pitch:-10.30 yaw:9.98
+Pose: roll:-0.99 pitch:-10.29 yaw:10.07
+Pose: roll:-0.86 pitch:-10.27 yaw:10.16
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.87 pitch:-10.27 yaw:10.05
+Pose: roll:-0.98 pitch:-10.27 yaw:10.02
+Pose: roll:-1.12 pitch:-10.29 yaw:10.09
+Sample rate: 50, gyro bias valid
+Pose: roll:-1.23 pitch:-10.30 yaw:10.13
+Pose: roll:-1.28 pitch:-10.30 yaw:10.23
+Pose: roll:-0.82 pitch:-10.22 yaw:9.39
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.79 pitch:-10.49 yaw:2.36
+Pose: roll:-0.80 pitch:-10.33 yaw:-5.05
+Pose: roll:-0.96 pitch:-10.28 yaw:-6.36
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.96 pitch:-10.26 yaw:-3.92
+Pose: roll:-0.94 pitch:-10.25 yaw:-1.91
+Pose: roll:-0.94 pitch:-10.26 yaw:-0.49
+Sample rate: 50, gyro bias valid
+Pose: roll:-0.93 pitch:-10.25 yaw:0.51
+Pose: roll:-0.92 pitch:-10.25 yaw:1.17
+Pose: roll:-0.92 pitch:-10.26 yaw:1.70
+Pose: roll:-1.35 pitch:-10.28 yaw:7.68
+Sample rate: 51, gyro bias valid
+Pose: roll:-1.27 pitch:-10.35 yaw:15.23
+Pose: roll:-1.11 pitch:-10.34 yaw:20.78
+Pose: roll:-0.90 pitch:-10.29 yaw:22.79
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.84 pitch:-10.30 yaw:21.69
+Pose: roll:-0.88 pitch:-10.29 yaw:19.27
+Pose: roll:-0.90 pitch:-10.29 yaw:17.40
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.91 pitch:-10.27 yaw:16.07
+Pose: roll:-0.64 pitch:-10.24 yaw:4.99
+Pose: roll:-1.16 pitch:-10.33 yaw:4.05
+Pose: roll:-0.97 pitch:-10.34 yaw:6.83
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.99 pitch:-10.30 yaw:7.36
+Pose: roll:-0.98 pitch:-10.30 yaw:7.83
+Pose: roll:-0.98 pitch:-10.29 yaw:8.17
+Sample rate: 50, gyro bias valid
+Pose: roll:-0.98 pitch:-10.27 yaw:8.38
+Pose: roll:-0.99 pitch:-10.27 yaw:8.52
+Pose: roll:-0.99 pitch:-10.26 yaw:8.54
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.99 pitch:-10.27 yaw:8.61
+Pose: roll:-1.00 pitch:-10.28 yaw:8.71
+Pose: roll:-1.00 pitch:-10.28 yaw:8.70
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.99 pitch:-10.28 yaw:8.67
+Pose: roll:-0.98 pitch:-10.28 yaw:8.59
+Pose: roll:-1.04 pitch:-10.20 yaw:8.65
+Pose: roll:-0.96 pitch:-10.29 yaw:8.67
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.95 pitch:-10.26 yaw:8.73
+Pose: roll:-0.96 pitch:-10.25 yaw:8.69
+Pose: roll:-0.98 pitch:-10.26 yaw:8.67
+Sample rate: 50, gyro bias valid
+Pose: roll:-0.99 pitch:-10.25 yaw:8.74
+Pose: roll:-0.99 pitch:-10.26 yaw:8.70
+Pose: roll:-0.99 pitch:-10.25 yaw:8.68
+Sample rate: 51, gyro bias valid
+Pose: roll:-0.99 pitch:-10.26 yaw:8.65
+Pose: roll:-0.98 pitch:-10.25 yaw:8.62
+Pose: roll:-0.97 pitch:-10.25 yaw:8.58
