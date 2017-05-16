@@ -26,3 +26,6 @@ retrieve EEPROM data as floats and print to serial
 
 May 11th A
 updating Hover program with new control system
+
+May 16th A
+Example code for new accelerometer/gyro/mag
