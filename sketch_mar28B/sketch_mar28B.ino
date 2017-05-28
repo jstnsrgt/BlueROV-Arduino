@@ -5,7 +5,6 @@
 #include "MotorSpeedDefinitions.h"
 #include <math.h>
 #include <EEPROM.h>
-
 #include "I2Cdev.h"
 #include "RTIMUSettings.h"
 #include "RTIMU.h"
@@ -16,7 +15,7 @@ RTIMU *imu;                                           // the IMU object
 RTFusionRTQF fusion;                                  // the fusion object
 RTIMUSettings settings;                               // the settings object
 
-RTVector3 xyz;
+RTVector3 rpy; //object containing a 3 element array of floats for roll, pitch and yaw
 
 MS5837 pSensor;
 //probably unnecessary unless tested in seawater
@@ -34,37 +33,41 @@ byte propPin5 = 6;
 byte propPin6 = 7;
 
 
-int xInput, yInput, zInput;
+int setRoll, setPitch, setYaw;
+int roll, pitch, yaw;
+int cRollErr,cPitchErr,cYawErr;
+int pRollErr,pPitchErr,pYawErr;
 
-int xDiff, yDiff, pDiff;
+int cErr5;
+int pErr5;
+int pid5Adj;
+
+int pid1Adj;
+int pid2Adj;
+int pid3Adj;
+int pid4Adj;
 
 float currentDepth, previousDepth;
 int currentMilli, previousMilli;
 
-float velocity;
-float targetVelocity;
 
 float targetDepth;
 float startDepth;
 
-int accelX;
-int accelY;
 
-
-
-
-int prop1Hover = MOTOR_HOVER_START_1;
-int prop2Hover = MOTOR_HOVER_START_2;
-int prop5Hover = MOTOR_HOVER_START_5;
+int prop1Output = MOTOR_HOVER_START_1;
+int prop2Output = MOTOR_HOVER_START_2;
+int prop5Output = MOTOR_HOVER_START_5;
 
 //gains may be implemented again
-float xyGain = 1; //set the gain for the speed based on the level correction changes
-float pGain = 1; //set the gain for the speed based on the vertical equilibrium changes
-float dGain = 1;
-float speedGain = 1;
-float Kp = 1;
-float Kd = 1;
-float Ki = 1;
+float pGainRoll = 1; //set the gain for the speed based on the level correction changes
+float pGainPitch = 1; //set the gain for the speed based on the level correction changes
+float pGainYaw = 1; //set the gain for the speed based on the level correction changes
+float dGainRoll = 1; //set the gain for the speed based on the level correction changes
+float dGainPitch = 1; //set the gain for the speed based on the level correction changes
+float dGainYaw = 1; //set the gain for the speed based on the level correction changes
+float pGain5 = 1; //set the gain for the PID speed based on the vertical equilibrium changes
+float dGain5 = 2; //
 
 Servo prop1;
 Servo prop2;
@@ -91,7 +94,12 @@ void setup() {
   fusion.setAccelEnable(true);
   fusion.setCompassEnable(true);
 
+  rpy = fusion.getFusionPose();
 
+  //X Y Z IS INCORRECTLY ALIGNED, MUST TEST AUV FOR REAL CONFIGURATION
+  setRoll = rpy.x();
+  setPitch = rpy.y();
+  setYaw = rpy.z();
   
   pSensor.init();
   pSensor.setFluidDensity(FRESHWATER);
@@ -113,10 +121,11 @@ void setup() {
   prop5.writeMicroseconds(MOTOR_STOP);
   prop6.writeMicroseconds(MOTOR_STOP);
 
-  delay(1000); 
+  delay(1000);
+   
   pSensor.read(); //read sensor
   currentDepth = startDepth = pSensor.depth(); //set initial depth  
-  targetDepth = startDepth - 0.10; //set target depth
+  targetDepth = startDepth - 0.15; //set target depth
   
   currentMilli = millis(); //begin tracking time
   
@@ -125,136 +134,74 @@ void setup() {
   prop5.writeMicroseconds(MOTOR_HOVER_START_5);
  
   delay(40); //delay for good measure
+  cErr5 = (currentDepth*100) - (targetDepth*100); //pdif: +ve = lower than target, -ve = higher than target
+  
   
 }
 void loop() {
   imu->IMURead();
-  delay(400);
+  delay(50);
   //Read sensor inputs
   pSensor.read(); //Pressure
-  xyz = fusion.getFusionPose();
+  rpy = fusion.getFusionPose();
 
+  //X Y Z IS INCORRECTLY ALIGNED, MUST TEST AUV FOR REAL CONFIGURATION
+  roll = rpy.x()*100;    //value decreases when side with motors 1 and 3 drops lower, value increases when side with motors 2 and 4 drops lower
+  pitch = rpy.y()*100;   //value decreses pitching down, increases pitching up
+  yaw = rpy.z()*100;
+
+  pRollErr = cRollErr;
+  pPitchErr = cPitchErr;
+  pYawErr = cYawErr;
   
-  yInput = analogRead(A1); //value decreases when side with motors 1 and 3 drops lower, value increases when side with motors 2 and 4 drops lower
-  xInput = analogRead(A2); //value decreses pitching down, increases pitching up
+  cRollErr = roll - setRoll;
+  cPitchErr = pitch - setPitch;
+  cYawErr = yaw - setYaw;
 
   //an example of code layout in a future version
   //Hover(&propSpeed, pSensor.depth(), xInput, yInput);
   
   //Save information from last cycle and assign info for current cycle
-  previousMilli = currentMilli;
-  currentMilli = millis();
   previousDepth = currentDepth;
   currentDepth = pSensor.depth();
 
+  pErr5 = cErr5;
+
   //Now in cm/s
-  velocity = ((currentDepth*100 - previousDepth*100)*1000)/(currentMilli - previousMilli); // +ve = moving down, -ve = moving up
 
   //meters to cm
-  pDiff = (currentDepth*100) - (targetDepth*100); //pdif: +ve = lower than target, -ve = higher than target
+  cErr5 = (currentDepth*100) - (targetDepth*100); //pdif: +ve = lower than target, -ve = higher than target
 
-  //speed is in centimeters per second, directly based on how many cemtimeters away the robot is
-  targetVelocity = pDiff*speedGain; // +ve = want to move up, -ve = want to move down
+  pid1Adj = -(cRollErr*pGainRoll + (cRollErr - pRollErr)*dGainRoll) + cPitchErr*pGainPitch + (cPitchErr - pPitchErr)*dGainPitch;
+  pid2Adj = cRollErr*pGainRoll + (cRollErr - pRollErr)*dGainRoll + cPitchErr*pGainPitch + (cPitchErr - pPitchErr)*dGainPitch;
+  pid3Adj = -(cYawErr*pGainYaw + (cYawErr - pYawErr)*dGainYaw);
+  pid4Adj = cYawErr*pGainYaw + (cYawErr - pYawErr)*dGainYaw;
+  pid5Adj = cErr5*pGain5 + (cErr5 - pErr5)*dGain5;
+
   
-  //need the absolute value to test largest change easily, not change direction
-  xDiff = fabs(accelX - xInput); 
-  yDiff = fabs(accelY - yInput);
-
-  //X and Y stability
-  if(xDiff > yDiff) 
-  {
-    if(xInput < accelX)
-    {
-      if(prop1Hover < 1899)
-        prop1Hover++;
-      if(prop2Hover < 1899)
-        prop2Hover++;
-      if(prop5Hover > 1526)
-        prop5Hover--;
-    }
-    else if(xInput > accelX)
-    {
-      if(prop1Hover > 1526)
-        prop1Hover--;
-      if(prop2Hover > 1526)
-        prop2Hover--;
-      if(prop5Hover < 1899)
-        prop5Hover++;
-    }
-  }
-  else
-  {
-    if(yInput < accelY)
-    {
-      if(prop1Hover < 1899)
-        prop1Hover++;
-      if(prop2Hover > 1526)
-        prop2Hover--;
-    }
-    else if(yInput > accelY)
-    {
-      if(prop1Hover > 1526)
-        prop1Hover--;
-      if(prop2Hover < 1899)
-        prop2Hover++;
-    }  
-  }
-
+  //speed is in centimeters per second, directly based on how many cemtimeters away the robot is
+  // targetVelocity = pDiff/2 cm/s;
+  
+ 
   //Depth Control
   //Gauge how far away robot needs to go
   //Gauge speed of robot
   
   //for every cm away robot is, target velocity is that distance per second
+  prop1Output = prop1Output + pid1Adj;
   
+  prop2Output = prop2Output + pid2Adj;
   
-  if(targetVelocity > 0) //if robot wants to move up
-  {
-    if(-velocity < targetVelocity) //if moving down or moving up too slowly, increase thrust
-    {
-      if(prop1Hover < 1899)
-        prop1Hover++;
-      if(prop2Hover < 1899)
-        prop2Hover++;
-      if(prop1Hover < 1899)
-        prop5Hover = prop5Hover+2;
-    }
-    else if(-velocity > targetVelocity) //if moving up too fast, decrease thrust
-    {
-      if(prop1Hover > 1526)
-        prop1Hover--;
-      if(prop2Hover > 1526)
-        prop2Hover--;
-      if(prop5Hover > 1528)
-        prop5Hover = prop5Hover-2;
-    }
-  }
-  else if(targetVelocity < 0) //wants to move down
-  {
-    if(velocity < targetVelocity) //if moving down too fast, increase thrust
-    {
-      if(prop1Hover < 1899)
-        prop1Hover++;
-      if(prop2Hover < 1899)
-        prop2Hover++;
-      if(prop1Hover < 1899)
-        prop5Hover = prop5Hover+2;
-    }
-    else if(velocity > targetVelocity) //if moving up or moving down too slowly, decrease thrust
-    {
-      if(prop1Hover > 1526)
-        prop1Hover--;
-      if(prop2Hover > 1526)
-        prop2Hover--;
-      if(prop5Hover > 1528)
-        prop5Hover = prop5Hover-2;
-    }
-  }
+  prop5Output = prop5Output + pid5Adj;
+
+  //set the system update rate
+  //while(millis() - currentMilli < 200);
   
   //update all motors after adjustment
-  prop1.writeMicroseconds(prop1Hover);
-  prop2.writeMicroseconds(prop2Hover);
+  prop1.writeMicroseconds(prop1Output);
+  prop2.writeMicroseconds(prop2Output);
   //prop3.writeMicroseconds(prop3Hover);
   //prop4.writeMicroseconds(prop4Hover);
-  prop5.writeMicroseconds(prop5Hover);
+  prop5.writeMicroseconds(prop5Output);
   //prop6.writeMicroseconds(prop6Hover);
 }

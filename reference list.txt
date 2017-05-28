@@ -29,3 +29,6 @@ updating Hover program with new control system
 
 May 16th A
 Example code for new accelerometer/gyro/mag
+
+May 17th A
+Bluetooth com port code
