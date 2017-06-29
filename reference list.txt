@@ -32,3 +32,6 @@ Example code for new accelerometer/gyro/mag
 
 May 17th A - 11
 Bluetooth com port code
+
+Jun 11th A - 12
+New experimental code base with an OOP structure
