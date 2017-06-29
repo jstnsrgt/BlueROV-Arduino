@@ -1,6 +1,4 @@
-//#include <SoftwareSerial.h>
 
-//SoftwareSerial BT_Serial(2,3); // RX | TX
 //change for arduino mega if needed, currently set for UNO
 
 char c = ' ';
@@ -8,12 +6,12 @@ char c = ' ';
 void setup() {
   // put your setup code here, to run once:
 
-  Serial.begin(115200); 
+  Serial.begin(38400);
   Serial.println("Arduino is ready");
   Serial.println("Remember to select NL & CR in the serial monitor");
 
   //initialise BT at AT mode baud rate
-  //BT_Serial.begin(38400);
+  Serial1.begin(38400);
 
   
   
@@ -21,17 +19,17 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-    /*
-    if (BT_Serial.available())
+    
+    if (Serial1.available())
     {  
-        c = BT_Serial.read();
+        c = Serial1.read();
         Serial.write(c);
     }
- */
+ 
     // Keep reading from Arduino Serial Monitor and send to HC-05
     if (Serial.available())
     {
         c =  Serial.read();
-        Serial.write(c);  
+        Serial1.write(c);  
     }
 }

@@ -172,12 +172,11 @@ void loop() {
   //meters to cm
   cErr5 = (currentDepth*100) - (targetDepth*100); //pdif: +ve = lower than target, -ve = higher than target
 
-  pid1Adj = -(cRollErr*pGainRoll + (cRollErr - pRollErr)*dGainRoll) + cPitchErr*pGainPitch + (cPitchErr - pPitchErr)*dGainPitch;
-  pid2Adj = cRollErr*pGainRoll + (cRollErr - pRollErr)*dGainRoll + cPitchErr*pGainPitch + (cPitchErr - pPitchErr)*dGainPitch;
-  pid3Adj = -(cYawErr*pGainYaw + (cYawErr - pYawErr)*dGainYaw);
-  pid4Adj = cYawErr*pGainYaw + (cYawErr - pYawErr)*dGainYaw;
-  pid5Adj = cErr5*pGain5 + (cErr5 - pErr5)*dGain5;
-
+  pid1Adj = -(cRollErr*pGainRoll + (cRollErr - pRollErr)*dGainRoll) + cPitchErr*pGainPitch + (cPitchErr - pPitchErr)*dGainPitch; //roll+pitch
+  pid2Adj = cRollErr*pGainRoll + (cRollErr - pRollErr)*dGainRoll + cPitchErr*pGainPitch + (cPitchErr - pPitchErr)*dGainPitch; //roll+pitch
+  pid3Adj = -(cYawErr*pGainYaw + (cYawErr - pYawErr)*dGainYaw); //yaw
+  pid4Adj = cYawErr*pGainYaw + (cYawErr - pYawErr)*dGainYaw; //yaw
+  pid5Adj = cErr5*pGain5 + (cErr5 - pErr5)*dGain5; // depth
   
   //speed is in centimeters per second, directly based on how many cemtimeters away the robot is
   // targetVelocity = pDiff/2 cm/s;

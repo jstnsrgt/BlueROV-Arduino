@@ -1,34 +1,34 @@
 Sketches
 
-Mar 21st A
+Mar 21st A - 1
 reads accelerometer data and prints to serial
 
-Mar 28th A
+Mar 28th A - 2
 Older iteration of Hover algorithm, uses set values based on pressure depth, no accel
 
-Mar 28th B
+Mar 28th B - 3
 Current iteration of hover algorithm
 
-Apr 6th A
+Apr 6th A - 4
 Test each motor one at a time at 5%
 
-Apr 6th B
+Apr 6th B - 5
 Test forward thrust with static vertical thrust up to ~50%
 
-Apr 6th C
+Apr 6th C - 6
 Test forward thrust up to 25% with no vertical thrust
 
-May 1st A
+May 1st A - 7
 place pressure data of float size into EEPROM ~4 times a sec
 
-May 1st B
+May 1st B - 8
 retrieve EEPROM data as floats and print to serial
 
-May 11th A
+May 11th A - 9
 updating Hover program with new control system
 
-May 16th A
+May 16th A - 10
 Example code for new accelerometer/gyro/mag
 
-May 17th A
+May 17th A - 11
 Bluetooth com port code
