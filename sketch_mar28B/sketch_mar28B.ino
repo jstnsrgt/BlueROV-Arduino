@@ -38,8 +38,8 @@ int roll, pitch, yaw;
 int cRollErr,cPitchErr,cYawErr;
 int pRollErr,pPitchErr,pYawErr;
 
-int cErr5;
-int pErr5;
+int cDepthErr;
+int pDepthErr;
 int pid5Adj;
 
 int pid1Adj;
@@ -66,8 +66,8 @@ float pGainYaw = 1; //set the gain for the speed based on the level correction c
 float dGainRoll = 1; //set the gain for the speed based on the level correction changes
 float dGainPitch = 1; //set the gain for the speed based on the level correction changes
 float dGainYaw = 1; //set the gain for the speed based on the level correction changes
-float pGain5 = 1; //set the gain for the PID speed based on the vertical equilibrium changes
-float dGain5 = 2; //
+float pGainDepth = 1; //set the gain for the PID speed based on the vertical equilibrium changes
+float dGainDepth = 2; //
 
 Servo prop1;
 Servo prop2;
@@ -134,7 +134,7 @@ void setup() {
   prop5.writeMicroseconds(MOTOR_HOVER_START_5);
  
   delay(40); //delay for good measure
-  cErr5 = (currentDepth*100) - (targetDepth*100); //pdif: +ve = lower than target, -ve = higher than target
+  cDepthErr = (currentDepth*100) - (targetDepth*100); //pdif: +ve = lower than target, -ve = higher than target
   
   
 }
@@ -165,18 +165,18 @@ void loop() {
   previousDepth = currentDepth;
   currentDepth = pSensor.depth();
 
-  pErr5 = cErr5;
+  pDepthErr = cDepthErr;
 
   //Now in cm/s
 
   //meters to cm
-  cErr5 = (currentDepth*100) - (targetDepth*100); //pdif: +ve = lower than target, -ve = higher than target
+  cDepthErr = (currentDepth*100) - (targetDepth*100); //pdif: +ve = lower than target, -ve = higher than target
 
   pid1Adj = -(cRollErr*pGainRoll + (cRollErr - pRollErr)*dGainRoll) + cPitchErr*pGainPitch + (cPitchErr - pPitchErr)*dGainPitch; //roll+pitch
   pid2Adj = cRollErr*pGainRoll + (cRollErr - pRollErr)*dGainRoll + cPitchErr*pGainPitch + (cPitchErr - pPitchErr)*dGainPitch; //roll+pitch
-  pid3Adj = -(cYawErr*pGainYaw + (cYawErr - pYawErr)*dGainYaw); //yaw
-  pid4Adj = cYawErr*pGainYaw + (cYawErr - pYawErr)*dGainYaw; //yaw
-  pid5Adj = cErr5*pGain5 + (cErr5 - pErr5)*dGain5; // depth
+//  pid3Adj = -(cYawErr*pGainYaw + (cYawErr - pYawErr)*dGainYaw); //yaw
+//  pid4Adj = cYawErr*pGainYaw + (cYawErr - pYawErr)*dGainYaw; //yaw
+  pid5Adj = cDepthErr*pGainDepth + (cDepthErr - pDepthErr)*dGainDepth; // depth
   
   //speed is in centimeters per second, directly based on how many cemtimeters away the robot is
   // targetVelocity = pDiff/2 cm/s;
@@ -187,13 +187,13 @@ void loop() {
   //Gauge speed of robot
   
   //for every cm away robot is, target velocity is that distance per second
-  prop1Output = prop1Output + pid1Adj;
+  prop1Output += pid1Adj;
   
-  prop2Output = prop2Output + pid2Adj;
+  prop2Output += pid2Adj;
   
-  prop5Output = prop5Output + pid5Adj;
+  prop5Output += pid5Adj;
 
-  //set the system update rate
+  //set the system update rate, comment out for fastest possible
   //while(millis() - currentMilli < 200);
   
   //update all motors after adjustment
