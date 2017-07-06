@@ -50,6 +50,7 @@ int pid4Adj;
 float currentDepth, previousDepth;
 int currentMilli, previousMilli;
 
+int cycleCount = 0;
 
 float targetDepth;
 float startDepth;
@@ -60,11 +61,11 @@ int prop2Output = MOTOR_HOVER_START_2;
 int prop5Output = MOTOR_HOVER_START_5;
 
 //gains may be implemented again
-float pGainRoll = 1; //set the gain for the speed based on the level correction changes
-float pGainPitch = 1; //set the gain for the speed based on the level correction changes
+float pGainRoll = 0.25; //set the gain for the speed based on the level correction changes
+float pGainPitch = 0.25; //set the gain for the speed based on the level correction changes
 float pGainYaw = 1; //set the gain for the speed based on the level correction changes
-float dGainRoll = 1; //set the gain for the speed based on the level correction changes
-float dGainPitch = 1; //set the gain for the speed based on the level correction changes
+float dGainRoll = 0.12; //set the gain for the speed based on the level correction changes
+float dGainPitch = 0.12; //set the gain for the speed based on the level correction changes
 float dGainYaw = 1; //set the gain for the speed based on the level correction changes
 float pGainDepth = 1; //set the gain for the PID speed based on the vertical equilibrium changes
 float dGainDepth = 2; //
@@ -79,7 +80,7 @@ Servo prop6;
 void setup() {
   Wire.begin();
 
-  
+  Serial.begin(115200);
   // create the imu object
   imu = RTIMU::createIMU(&settings);
   
@@ -97,8 +98,8 @@ void setup() {
   rpy = fusion.getFusionPose();
 
   //X Y Z IS INCORRECTLY ALIGNED, MUST TEST AUV FOR REAL CONFIGURATION
-  setRoll = rpy.x();
-  setPitch = rpy.y();
+  setRoll = rpy.y();
+  setPitch = rpy.x();
   setYaw = rpy.z();
   
   pSensor.init();
@@ -121,11 +122,11 @@ void setup() {
   prop5.writeMicroseconds(MOTOR_STOP);
   prop6.writeMicroseconds(MOTOR_STOP);
 
-  delay(1000);
+  delay(10000);
    
   pSensor.read(); //read sensor
   currentDepth = startDepth = pSensor.depth(); //set initial depth  
-  targetDepth = startDepth - 0.15; //set target depth
+  targetDepth = startDepth - 0.10; //set target depth
   
   currentMilli = millis(); //begin tracking time
   
@@ -146,9 +147,9 @@ void loop() {
   rpy = fusion.getFusionPose();
 
   //X Y Z IS INCORRECTLY ALIGNED, MUST TEST AUV FOR REAL CONFIGURATION
-  roll = rpy.x()*100;    //value decreases when side with motors 1 and 3 drops lower, value increases when side with motors 2 and 4 drops lower
-  pitch = rpy.y()*100;   //value decreses pitching down, increases pitching up
-  yaw = rpy.z()*100;
+  roll = rpy.y();    //value decreases when side with motors 1 and 3 drops lower, value increases when side with motors 2 and 4 drops lower
+  pitch = rpy.x();   //value decreses pitching down, increases pitching up
+  yaw = rpy.z();
 
   pRollErr = cRollErr;
   pPitchErr = cPitchErr;
@@ -172,16 +173,18 @@ void loop() {
   //meters to cm
   cDepthErr = (currentDepth*100) - (targetDepth*100); //pdif: +ve = lower than target, -ve = higher than target
 
-  pid1Adj = -(cRollErr*pGainRoll + (cRollErr - pRollErr)*dGainRoll) + cPitchErr*pGainPitch + (cPitchErr - pPitchErr)*dGainPitch; //roll+pitch
-  pid2Adj = cRollErr*pGainRoll + (cRollErr - pRollErr)*dGainRoll + cPitchErr*pGainPitch + (cPitchErr - pPitchErr)*dGainPitch; //roll+pitch
+  
 //  pid3Adj = -(cYawErr*pGainYaw + (cYawErr - pYawErr)*dGainYaw); //yaw
 //  pid4Adj = cYawErr*pGainYaw + (cYawErr - pYawErr)*dGainYaw; //yaw
-  pid5Adj = cDepthErr*pGainDepth + (cDepthErr - pDepthErr)*dGainDepth; // depth
-  
+    pid5Adj = cDepthErr*pGainDepth + (cDepthErr - pDepthErr)*dGainDepth; // depth
+
+    pid1Adj = -(cRollErr*pGainRoll + (cRollErr - pRollErr)*dGainRoll) + cPitchErr*pGainPitch + (cPitchErr - pPitchErr)*dGainPitch; //roll+pitch
+    pid2Adj = cRollErr*pGainRoll + (cRollErr - pRollErr)*dGainRoll + cPitchErr*pGainPitch + (cPitchErr - pPitchErr)*dGainPitch; //roll+pitch
+
   //speed is in centimeters per second, directly based on how many cemtimeters away the robot is
   // targetVelocity = pDiff/2 cm/s;
+
   
- 
   //Depth Control
   //Gauge how far away robot needs to go
   //Gauge speed of robot
@@ -193,6 +196,12 @@ void loop() {
   
   prop5Output += pid5Adj;
 
+  if(prop5Output < 1500)
+  {
+    prop5Output = 1500;
+  }
+
+  
   //set the system update rate, comment out for fastest possible
   //while(millis() - currentMilli < 200);
   

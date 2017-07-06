@@ -45,12 +45,7 @@ int sampleCount;
 
 //Each output will be treated as a servo controller
 //as the Blue Robitics Basic ESC accepts PWM as input
-Servo prop1;
-Servo prop2;
-Servo prop3;
-Servo prop4;
-Servo prop5;
-Servo prop6;
+Servo propAll[6];
 
 /* ESC INPUT
  * PWM duty cycle
@@ -70,22 +65,22 @@ void setup() {
   imu = RTIMU::createIMU(&settings);                        // create the imu object
  
   
-  prop1.attach(propPin1);
-  prop2.attach(propPin2);
-  prop3.attach(propPin3);
-  prop4.attach(propPin4);
-  prop5.attach(propPin5);
-  prop6.attach(propPin6);
+  propAll[0].attach(propPin1);
+  propAll[1].attach(propPin2);
+  propAll[2].attach(propPin3);
+  propAll[3].attach(propPin4);
+  propAll[4].attach(propPin5);
+  propAll[5].attach(propPin6);
 
   
 
 
-  prop1.writeMicroseconds(MOTOR_STOP);
-  prop2.writeMicroseconds(MOTOR_STOP);
-  prop3.writeMicroseconds(MOTOR_STOP);
-  prop4.writeMicroseconds(MOTOR_STOP);
-  prop5.writeMicroseconds(MOTOR_STOP);
-  prop6.writeMicroseconds(MOTOR_STOP);
+  propAll[0].writeMicroseconds(MOTOR_STOP);
+  propAll[1].writeMicroseconds(MOTOR_STOP);
+  propAll[2].writeMicroseconds(MOTOR_STOP);
+  propAll[3].writeMicroseconds(MOTOR_STOP);
+  propAll[4].writeMicroseconds(MOTOR_STOP);
+  propAll[5].writeMicroseconds(MOTOR_STOP);
 
   Serial.print("ArduinoIMU starting using device "); Serial.println(imu->IMUName());
     if ((errcode = imu->IMUInit()) < 0) {
@@ -104,7 +99,7 @@ void setup() {
     // 0 means that only gyros are used, 1 means that only accels/compass are used
     // In-between gives the fusion mix.
     
-    fusion.setSlerpPower(0.02);
+    fusion.setSlerpPower(0.5);
     
     // use of sensors in the fusion algorithm can be controlled here
     // change any of these to false to disable that sensor

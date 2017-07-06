@@ -6,12 +6,12 @@ char c = ' ';
 void setup() {
   // put your setup code here, to run once:
 
-  Serial.begin(115200);
+  Serial.begin(38400);
   Serial.println("Arduino is ready");
   Serial.println("Remember to select NL & CR in the serial monitor");
 
   //initialise BT at AT mode baud rate
-  Serial1.begin(115200);
+  Serial1.begin(38400);
 
   
   
