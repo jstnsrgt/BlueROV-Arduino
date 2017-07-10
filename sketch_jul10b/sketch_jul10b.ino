@@ -59,7 +59,6 @@ void setup() {
   //X Y Z IS INCORRECTLY ALIGNED, MUST TEST AUV FOR REAL CONFIGURATION
   setRoll = rpy.y();
   setPitch = rpy.x();
-  setYaw = rpy.z();
   
   pinMode(13,OUTPUT); //Ready LED
 
@@ -78,17 +77,14 @@ void loop() {
   //X Y Z IS INCORRECTLY ALIGNED, MUST TEST AUV FOR REAL CONFIGURATION
   roll = rpy.y();    //value decreases when side with motors 1 and 3 drops lower, value increases when side with motors 2 and 4 drops lower
   pitch = rpy.x();   //value decreses pitching down, increases pitching up
-  yaw = rpy.z();
 
   //roll over current error values into previous values
   pRollErr = cRollErr;
   pPitchErr = cPitchErr;
-  pYawErr = cYawErr;
   
   //update current error values
   cRollErr = roll - setRoll;
   cPitchErr = pitch - setPitch;
-  cYawErr = yaw - setYaw;
 
 //NEITHER PITCH NOR ROLL WORKS CORRECTLY
     pid1Adj = -(cRollErr*pGainRoll + (cRollErr - pRollErr)*dGainRoll) + cPitchErr*pGainPitch + (cPitchErr - pPitchErr)*dGainPitch; //roll+pitch
@@ -99,5 +95,27 @@ void loop() {
   
   Serial.print("Motor 2 adjustment: ");
   Serial.println(pid2Adj);
+  Serial.println();
+  
+  Serial.print("Current Roll Error: ");
+  Serial.println(cRollErr);
+  
+  Serial.print("Current Pitch Error: ");
+  Serial.println(cPitchErr);
+  Serial.println();
+
+  Serial.print("Previous Roll Error: ");
+  Serial.println(pRollErr);
+  
+  Serial.print("Previous Pitch Error: ");
+  Serial.println(pPitchErr);
+  Serial.println();
+
+  Serial.print("(Roll, Pitch) : (");
+  Serial.print(roll);
+  Serial.print(", ");
+  Serial.print(pitch);
+  Serial.println(")");
+  
   delay(1000);
 }
