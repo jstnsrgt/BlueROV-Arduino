@@ -33,29 +33,36 @@ byte propPin5 = 6;
 byte propPin6 = 7;
 
 
-int setRoll, setPitch, setYaw;
+int setRoll, setPitch, setYaw; //target
 int roll, pitch, yaw;
-int cRollErr,cPitchErr,cYawErr;
-int pRollErr,pPitchErr,pYawErr;
+int cRollErr,cPitchErr,cYawErr; //current
+int pRollErr,pPitchErr,pYawErr; //previous
 
-int cDepthErr;
-int pDepthErr;
-int pid5Adj;
+//depth error values
+int cDepthErr; //current
+int pDepthErr; //previous
 
+//stores control system output for each thruster
 int pid1Adj;
 int pid2Adj;
 int pid3Adj;
 int pid4Adj;
+int pid5Adj; 
 
+//raw depth values
 float currentDepth, previousDepth;
+
+//time keeping variables, rollover protection not required - takes > 50 days
 int currentMilli, previousMilli;
+
 
 int cycleCount = 0;
 
+// depth tracking values
 float targetDepth;
 float startDepth;
 
-
+// close approximation stable start values
 int prop1Output = MOTOR_HOVER_START_1;
 int prop2Output = MOTOR_HOVER_START_2;
 int prop5Output = MOTOR_HOVER_START_5;
@@ -70,6 +77,7 @@ float dGainYaw = 1; //set the gain for the speed based on the level correction c
 float pGainDepth = 1; //set the gain for the PID speed based on the vertical equilibrium changes
 float dGainDepth = 2; //
 
+//thruster output represented as Servo objects, PWM signal managed by functions
 Servo prop1;
 Servo prop2;
 Servo prop3;
@@ -78,16 +86,15 @@ Servo prop5;
 Servo prop6;
 
 void setup() {
-  Wire.begin();
+  Wire.begin(); //for I2C communication with pressure and IMU sensors
 
-  Serial.begin(115200);
   // create the imu object
   imu = RTIMU::createIMU(&settings);
   
   // Slerp power controls the fusion and can be between 0 and 1
   // 0 means that only gyros are used, 1 means that only accels/compass are used
   // In-between gives the fusion mix.
-  fusion.setSlerpPower(0.02);
+  fusion.setSlerpPower(0.5);
 
   // use of sensors in the fusion algorithm can be controlled here
   // change any of these to false to disable that sensor
@@ -102,12 +109,13 @@ void setup() {
   setPitch = rpy.x();
   setYaw = rpy.z();
   
+  //initialise pressure sensor
   pSensor.init();
   pSensor.setFluidDensity(FRESHWATER);
   
   pinMode(13,OUTPUT); //Ready LED
 
-  
+  //assign servo objects to their corresponding output pins
   prop1.attach(propPin1);
   prop2.attach(propPin2);
   prop3.attach(propPin3);
@@ -115,6 +123,7 @@ void setup() {
   prop5.attach(propPin5);
   prop6.attach(propPin6);
 
+  //begin a constant PWM output with duty cycle corresponding to the dead zone of the thrusters
   prop1.writeMicroseconds(MOTOR_STOP);
   prop2.writeMicroseconds(MOTOR_STOP);
   prop3.writeMicroseconds(MOTOR_STOP);
@@ -123,18 +132,22 @@ void setup() {
   prop6.writeMicroseconds(MOTOR_STOP);
 
   delay(10000);
+  //ten second buffer to stabilise speed controllers and also in case of program upload
    
-  pSensor.read(); //read sensor
+  pSensor.read(); //read pressure sensor
   currentDepth = startDepth = pSensor.depth(); //set initial depth  
   targetDepth = startDepth - 0.10; //set target depth
   
   currentMilli = millis(); //begin tracking time
   
+  //output thruster power values close to bouyancy and stability
   prop1.writeMicroseconds(MOTOR_HOVER_START_1);
   prop2.writeMicroseconds(MOTOR_HOVER_START_2);
   prop5.writeMicroseconds(MOTOR_HOVER_START_5);
  
-  delay(40); //delay for good measure
+  delay(40); //delay for to allow some motion to occur
+  
+  //calculate first depth error value
   cDepthErr = (currentDepth*100) - (targetDepth*100); //pdif: +ve = lower than target, -ve = higher than target
   
   
@@ -151,10 +164,12 @@ void loop() {
   pitch = rpy.x();   //value decreses pitching down, increases pitching up
   yaw = rpy.z();
 
+  //roll over current error values into previous values
   pRollErr = cRollErr;
   pPitchErr = cPitchErr;
   pYawErr = cYawErr;
   
+  //update current error values
   cRollErr = roll - setRoll;
   cPitchErr = pitch - setPitch;
   cYawErr = yaw - setYaw;
@@ -165,7 +180,6 @@ void loop() {
   //Save information from last cycle and assign info for current cycle
   previousDepth = currentDepth;
   currentDepth = pSensor.depth();
-
   pDepthErr = cDepthErr;
 
   //Now in cm/s
@@ -176,8 +190,11 @@ void loop() {
   
 //  pid3Adj = -(cYawErr*pGainYaw + (cYawErr - pYawErr)*dGainYaw); //yaw
 //  pid4Adj = cYawErr*pGainYaw + (cYawErr - pYawErr)*dGainYaw; //yaw
+
+//APPEARS TO WORK CORRECTLY
     pid5Adj = cDepthErr*pGainDepth + (cDepthErr - pDepthErr)*dGainDepth; // depth
 
+//NEITHER PITCH NOR ROLL WORKS CORRECTLY
     pid1Adj = -(cRollErr*pGainRoll + (cRollErr - pRollErr)*dGainRoll) + cPitchErr*pGainPitch + (cPitchErr - pPitchErr)*dGainPitch; //roll+pitch
     pid2Adj = cRollErr*pGainRoll + (cRollErr - pRollErr)*dGainRoll + cPitchErr*pGainPitch + (cPitchErr - pPitchErr)*dGainPitch; //roll+pitch
 
@@ -196,9 +213,33 @@ void loop() {
   
   prop5Output += pid5Adj;
 
+//ensure propellor is never driven negative
   if(prop5Output < 1500)
   {
     prop5Output = 1500;
+  }
+  if(prop1Output < 1500)
+  {
+    prop1Output = 1500;
+  }
+  if(prop2Output < 1500)
+  {
+    prop2Output = 1500;
+  }
+  
+  
+  // 50 % max power limit (much greater than bouyant value)
+  if(prop5Output > 1712)
+  {
+    prop5Output = 1712;
+  }
+  if(prop1Output > 1712)
+  {
+    prop1Output = 1712;
+  }
+  if(prop2Output > 1712)
+  {
+    prop2Output = 1712;
   }
 
   
