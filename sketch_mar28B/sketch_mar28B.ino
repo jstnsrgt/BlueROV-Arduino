@@ -33,8 +33,8 @@ byte propPin5 = 6;
 byte propPin6 = 7;
 
 
-int setRoll, setPitch, setYaw; //target
-int roll, pitch, yaw;
+float setRoll, setPitch, setYaw; //target
+float roll, pitch, yaw;
 int cRollErr,cPitchErr,cYawErr; //current
 int pRollErr,pPitchErr,pYawErr; //previous
 
@@ -63,16 +63,16 @@ float targetDepth;
 float startDepth;
 
 // close approximation stable start values
-int prop1Output = MOTOR_HOVER_START_1;
-int prop2Output = MOTOR_HOVER_START_2;
-int prop5Output = MOTOR_HOVER_START_5;
+int prop1Output = T1_BASE;
+int prop2Output = T2_BASE;
+int prop5Output = T5_BASE;
 
 //gains may be implemented again
-float pGainRoll = 0.25; //set the gain for the speed based on the level correction changes
-float pGainPitch = 0.25; //set the gain for the speed based on the level correction changes
+float pGainRoll = 0.8; //set the gain for the speed based on the level correction changes
+float pGainPitch = 0.8; //set the gain for the speed based on the level correction changes
 float pGainYaw = 1; //set the gain for the speed based on the level correction changes
-float dGainRoll = 0.12; //set the gain for the speed based on the level correction changes
-float dGainPitch = 0.12; //set the gain for the speed based on the level correction changes
+float dGainRoll = 5; //set the gain for the speed based on the level correction changes
+float dGainPitch = 5; //set the gain for the speed based on the level correction change
 float dGainYaw = 1; //set the gain for the speed based on the level correction changes
 float pGainDepth = 1; //set the gain for the PID speed based on the vertical equilibrium changes
 float dGainDepth = 2; //
@@ -90,7 +90,7 @@ void setup() {
 
   // create the imu object
   imu = RTIMU::createIMU(&settings);
-  
+  imu->IMUInit();
   // Slerp power controls the fusion and can be between 0 and 1
   // 0 means that only gyros are used, 1 means that only accels/compass are used
   // In-between gives the fusion mix.
@@ -102,12 +102,13 @@ void setup() {
   fusion.setAccelEnable(true);
   fusion.setCompassEnable(true);
 
+  fusion.newIMUData(imu->getGyro(), imu->getAccel(), imu->getCompass(), imu->getTimestamp());
   rpy = fusion.getFusionPose();
 
   //X Y Z IS INCORRECTLY ALIGNED, MUST TEST AUV FOR REAL CONFIGURATION
-  setRoll = rpy.y();
-  setPitch = rpy.x();
-  setYaw = rpy.z();
+  setRoll = rpy.y()*100;
+  setPitch = rpy.x()*100;
+  setYaw = rpy.z()*100;
   
   //initialise pressure sensor
   pSensor.init();
@@ -141,9 +142,9 @@ void setup() {
   currentMilli = millis(); //begin tracking time
   
   //output thruster power values close to bouyancy and stability
-  prop1.writeMicroseconds(MOTOR_HOVER_START_1);
-  prop2.writeMicroseconds(MOTOR_HOVER_START_2);
-  prop5.writeMicroseconds(MOTOR_HOVER_START_5);
+  prop1.writeMicroseconds(T1_BASE);
+  prop2.writeMicroseconds(T2_BASE);
+  prop5.writeMicroseconds(T5_BASE);
  
   delay(40); //delay for to allow some motion to occur
   
@@ -153,16 +154,18 @@ void setup() {
   
 }
 void loop() {
-  imu->IMURead();
-  delay(50);
+  while(!imu->IMURead());
   //Read sensor inputs
   pSensor.read(); //Pressure
+  
+  fusion.newIMUData(imu->getGyro(), imu->getAccel(), imu->getCompass(), imu->getTimestamp());
+
   rpy = fusion.getFusionPose();
 
   //X Y Z IS INCORRECTLY ALIGNED, MUST TEST AUV FOR REAL CONFIGURATION
-  roll = rpy.y();    //value decreases when side with motors 1 and 3 drops lower, value increases when side with motors 2 and 4 drops lower
-  pitch = rpy.x();   //value decreses pitching down, increases pitching up
-  yaw = rpy.z();
+  roll = rpy.y()*100;    //value decreases when side with motors 1 and 3 drops lower, value increases when side with motors 2 and 4 drops lower
+  pitch = rpy.x()*100;   //value decreses pitching down, increases pitching up
+  yaw = rpy.z()*100;
 
   //roll over current error values into previous values
   pRollErr = cRollErr;
@@ -195,8 +198,8 @@ void loop() {
     pid5Adj = cDepthErr*pGainDepth + (cDepthErr - pDepthErr)*dGainDepth; // depth
 
 //NEITHER PITCH NOR ROLL WORKS CORRECTLY
-    pid1Adj = -(cRollErr*pGainRoll + (cRollErr - pRollErr)*dGainRoll) + cPitchErr*pGainPitch + (cPitchErr - pPitchErr)*dGainPitch; //roll+pitch
-    pid2Adj = cRollErr*pGainRoll + (cRollErr - pRollErr)*dGainRoll + cPitchErr*pGainPitch + (cPitchErr - pPitchErr)*dGainPitch; //roll+pitch
+    pid1Adj = /*-(cRollErr*pGainRoll + (cRollErr - pRollErr)*dGainRoll) +*/ cPitchErr*pGainPitch + (cPitchErr - pPitchErr)*dGainPitch; //roll+pitch
+    pid2Adj =  /*cRollErr*pGainRoll + (cRollErr - pRollErr)*dGainRoll +*/ cPitchErr*pGainPitch + (cPitchErr - pPitchErr)*dGainPitch; //roll+pitch
 
   //speed is in centimeters per second, directly based on how many cemtimeters away the robot is
   // targetVelocity = pDiff/2 cm/s;
@@ -207,28 +210,52 @@ void loop() {
   //Gauge speed of robot
   
   //for every cm away robot is, target velocity is that distance per second
-  prop1Output += pid1Adj;
-  
-  prop2Output += pid2Adj;
-  
-  prop5Output += pid5Adj;
 
-//ensure propellor is never driven negative
-  if(prop5Output < 1500)
+  prop5Output = T5_BASE + pid5Adj;
+
+  
+  if(prop5Output > 1525)
   {
-    prop5Output = 1500;
+    prop1Output = 1525 + 0.5*(prop5Output - 1525) + pid1Adj;
+    prop2Output = 1525 + 0.5*(prop5Output - 1525) + pid2Adj;
   }
-  if(prop1Output < 1500)
+  else
   {
-    prop1Output = 1500;
+    prop1Output = 1525 + pid1Adj;
+    prop2Output = 1525 + pid2Adj;
   }
-  if(prop2Output < 1500)
+
+  //if output falls into dead zone, change instead to corresponding reverse thrust value
+  if(prop1Output < 1525)
   {
-    prop2Output = 1500;
+    prop1Output -= 50;
+  }
+  if(prop2Output < 1525)
+  {
+    prop2Output -= 50;
+  }
+  if(prop5Output < 1525)
+  {
+    prop5Output -= 50;
+  }
+  
+
+// Reverse 40% max power limit
+  if(prop5Output < 1320)
+  {
+    prop5Output = 1320;
+  }
+  if(prop1Output < 1320)
+  {
+    prop1Output = 1320;
+  }
+  if(prop2Output < 1320)
+  {
+    prop2Output = 1320;
   }
   
   
-  // 50 % max power limit (much greater than bouyant value)
+  // 50 % max power limit
   if(prop5Output > 1712)
   {
     prop5Output = 1712;
