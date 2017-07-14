@@ -7,7 +7,7 @@
 void setup() {
   float toPrint;
   Serial.begin(115200);
-  delay(5000);
+  delay(10000);
   for(int addr = 0; addr < EEPROM.length(); addr += sizeof(float))
   {
      EEPROM.get(addr,toPrint);

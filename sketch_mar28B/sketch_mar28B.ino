@@ -55,9 +55,8 @@ float currentDepth, previousDepth;
 //time keeping variables, rollover protection not required - takes > 50 days
 int currentMilli, previousMilli;
 
-
 int cycleCount = 0;
-
+int addr;
 // depth tracking values
 float targetDepth;
 float startDepth;
@@ -68,11 +67,11 @@ int prop2Output = T2_BASE;
 int prop5Output = T5_BASE;
 
 //gains may be implemented again
-float pGainRoll = 0.8; //set the gain for the speed based on the level correction changes
-float pGainPitch = 0.8; //set the gain for the speed based on the level correction changes
-float pGainYaw = 1; //set the gain for the speed based on the level correction changes
-float dGainRoll = 5; //set the gain for the speed based on the level correction changes
-float dGainPitch = 5; //set the gain for the speed based on the level correction change
+float pGainRoll = 1; //set the gain for the speed based on the level correction changes
+float pGainPitch = 1; //set the gain for the speed based on the level correction changes
+float pGainYaw = 0.7; //set the gain for the speed based on the level correction changes
+float dGainRoll = 3.5; //set the gain for the speed based on the level correction changes
+float dGainPitch = 3.5; //set the gain for the speed based on the level correction change
 float dGainYaw = 1; //set the gain for the speed based on the level correction changes
 float pGainDepth = 1; //set the gain for the PID speed based on the vertical equilibrium changes
 float dGainDepth = 2; //
@@ -111,7 +110,7 @@ void setup() {
   setYaw = rpy.z()*100;
   
   //initialise pressure sensor
-  pSensor.init();
+  
   pSensor.setFluidDensity(FRESHWATER);
   
   pinMode(13,OUTPUT); //Ready LED
@@ -131,13 +130,22 @@ void setup() {
   prop4.writeMicroseconds(MOTOR_STOP);
   prop5.writeMicroseconds(MOTOR_STOP);
   prop6.writeMicroseconds(MOTOR_STOP);
-
-  delay(10000);
+ delay(10000);
   //ten second buffer to stabilise speed controllers and also in case of program upload
-   
+
+  pSensor.init();
+  
+  for(addr = 0; addr < 200; addr += sizeof(float))
+  {
+    pSensor.read();
+    EEPROM.put(addr,pSensor.depth());
+    delay(200);
+    
+  }
+
   pSensor.read(); //read pressure sensor
   currentDepth = startDepth = pSensor.depth(); //set initial depth  
-  targetDepth = startDepth - 0.10; //set target depth
+  targetDepth = startDepth - 0.05; //set target depth
   
   currentMilli = millis(); //begin tracking time
   
@@ -154,9 +162,30 @@ void setup() {
   
 }
 void loop() {
+  pSensor.read(); //Pressure
+  if(addr == 50)
+  {
+    EEPROM.put(addr,millis());
+    delay(200);
+    addr += sizeof(float);
+  }
+  else if(addr == sizeof(float)*1000 - 1)
+  {
+    EEPROM.put(addr,millis());
+    delay(200);
+    addr += sizeof(float);
+  }
+  else if(addr <  EEPROM.length() - sizeof(float))
+  {
+    pSensor.read();
+    EEPROM.put(addr,pSensor.depth());
+    delay(200);
+    addr += sizeof(float);
+  }
+  
   while(!imu->IMURead());
   //Read sensor inputs
-  pSensor.read(); //Pressure
+  
   
   fusion.newIMUData(imu->getGyro(), imu->getAccel(), imu->getCompass(), imu->getTimestamp());
 
@@ -213,7 +242,6 @@ void loop() {
 
   prop5Output = T5_BASE + pid5Adj;
 
-  
   if(prop5Output > 1525)
   {
     prop1Output = 1525 + 0.5*(prop5Output - 1525) + pid1Adj;
@@ -224,49 +252,34 @@ void loop() {
     prop1Output = 1525 + pid1Adj;
     prop2Output = 1525 + pid2Adj;
   }
-
-  //if output falls into dead zone, change instead to corresponding reverse thrust value
-  if(prop1Output < 1525)
-  {
-    prop1Output -= 50;
-  }
-  if(prop2Output < 1525)
-  {
-    prop2Output -= 50;
-  }
-  if(prop5Output < 1525)
-  {
-    prop5Output -= 50;
-  }
+  //if output falls intgo dead zone, change instead to corresponding reverse thrust value
   
 
-// Reverse 40% max power limit
-  if(prop5Output < 1320)
+  if(prop5Output < 1535)
   {
-    prop5Output = 1320;
+    prop5Output = 1535;
   }
-  if(prop1Output < 1320)
+  if(prop1Output < 1535)
   {
-    prop1Output = 1320;
+    prop1Output = 1535;
   }
-  if(prop2Output < 1320)
+  if(prop2Output < 1535)
   {
-    prop2Output = 1320;
+    prop2Output = 1535;
   }
   
-  
-  // 50 % max power limit
-  if(prop5Output > 1712)
+ 
+  if(prop5Output > 1600)
   {
-    prop5Output = 1712;
+    prop5Output = 1600;
   }
-  if(prop1Output > 1712)
+  if(prop1Output > 1600)
   {
-    prop1Output = 1712;
+    prop1Output = 1600;
   }
-  if(prop2Output > 1712)
+  if(prop2Output > 1600)
   {
-    prop2Output = 1712;
+    prop2Output = 1600;
   }
 
   
