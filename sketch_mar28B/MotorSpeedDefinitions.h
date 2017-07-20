@@ -42,6 +42,6 @@
 #define MOTOR_BACKWARD_95P 1118
 #define MOTOR_BACKWARD_100P 1100
 
-#define T5_BASE 1581
-#define T1_BASE 1553
-#define T2_BASE 1553
+#define T5_BASE 1565
+#define T1_BASE 1545
+#define T2_BASE 1545

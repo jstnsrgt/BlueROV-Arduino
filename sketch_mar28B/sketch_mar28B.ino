@@ -32,6 +32,7 @@ byte propPin4 = 5;
 byte propPin5 = 6;
 byte propPin6 = 7;
 
+int bandwidth = 5;
 
 float setRoll, setPitch, setYaw; //target
 float roll, pitch, yaw;
@@ -49,6 +50,11 @@ int pid3Adj;
 int pid4Adj;
 int pid5Adj; 
 
+int rollAdj, pitchAdj, yawAdj;
+
+
+
+
 //raw depth values
 float currentDepth, previousDepth;
 
@@ -56,23 +62,28 @@ float currentDepth, previousDepth;
 int currentMilli, previousMilli;
 
 int cycleCount = 0;
-int addr;
+int addr = 0;
 // depth tracking values
 float targetDepth;
 float startDepth;
 
 // close approximation stable start values
+int t5_base = T5_BASE;
+int t1_base = T1_BASE;
+int t2_base = T2_BASE;
 int prop1Output = T1_BASE;
 int prop2Output = T2_BASE;
 int prop5Output = T5_BASE;
+int prop3Output;
+int prop4Output;
 
 //gains may be implemented again
-float pGainRoll = 1; //set the gain for the speed based on the level correction changes
-float pGainPitch = 1; //set the gain for the speed based on the level correction changes
+float pGainRoll = 0.2; //set the gain for the speed based on the level correction changes
+float pGainPitch = 0.3; //set the gain for the speed based on the level correction changes
 float pGainYaw = 0.7; //set the gain for the speed based on the level correction changes
-float dGainRoll = 3.5; //set the gain for the speed based on the level correction changes
-float dGainPitch = 3.5; //set the gain for the speed based on the level correction change
-float dGainYaw = 1; //set the gain for the speed based on the level correction changes
+float dGainRoll = 3; //set the gain for the speed based on the level correction changes
+float dGainPitch = 3; //set the gain for the speed based on the level correction change
+float dGainYaw = 2; //set the gain for the speed based on the level correction changes
 float pGainDepth = 1; //set the gain for the PID speed based on the vertical equilibrium changes
 float dGainDepth = 2; //
 
@@ -93,7 +104,7 @@ void setup() {
   // Slerp power controls the fusion and can be between 0 and 1
   // 0 means that only gyros are used, 1 means that only accels/compass are used
   // In-between gives the fusion mix.
-  fusion.setSlerpPower(0.5);
+  fusion.setSlerpPower(0.1);
 
   // use of sensors in the fusion algorithm can be controlled here
   // change any of these to false to disable that sensor
@@ -111,7 +122,7 @@ void setup() {
   
   //initialise pressure sensor
   
-  pSensor.setFluidDensity(FRESHWATER);
+  
   
   pinMode(13,OUTPUT); //Ready LED
 
@@ -130,29 +141,30 @@ void setup() {
   prop4.writeMicroseconds(MOTOR_STOP);
   prop5.writeMicroseconds(MOTOR_STOP);
   prop6.writeMicroseconds(MOTOR_STOP);
- delay(10000);
+  delay(10000);
   //ten second buffer to stabilise speed controllers and also in case of program upload
 
   pSensor.init();
+  pSensor.setFluidDensity(FRESHWATER);
   
-  for(addr = 0; addr < 200; addr += sizeof(float))
+  /*for(addr = 0; addr < 200; addr += sizeof(float))
   {
     pSensor.read();
     EEPROM.put(addr,pSensor.depth());
     delay(200);
     
-  }
+  }*/
 
-  pSensor.read(); //read pressure sensor
-  currentDepth = startDepth = pSensor.depth(); //set initial depth  
-  targetDepth = startDepth - 0.05; //set target depth
+  pSensor.read();                               //read pressure sensor
+  currentDepth = startDepth = pSensor.depth();  //set initial depth  
+  targetDepth = startDepth - 0.10;              //set target depth
   
   currentMilli = millis(); //begin tracking time
   
   //output thruster power values close to bouyancy and stability
-  prop1.writeMicroseconds(T1_BASE);
-  prop2.writeMicroseconds(T2_BASE);
-  prop5.writeMicroseconds(T5_BASE);
+  //prop1.writeMicroseconds(T1_BASE);
+  //prop2.writeMicroseconds(T2_BASE);
+  //prop5.writeMicroseconds(T5_BASE);
  
   delay(40); //delay for to allow some motion to occur
   
@@ -162,35 +174,17 @@ void setup() {
   
 }
 void loop() {
-  pSensor.read(); //Pressure
-  if(addr == 50)
-  {
-    EEPROM.put(addr,millis());
-    delay(200);
-    addr += sizeof(float);
-  }
-  else if(addr == sizeof(float)*1000 - 1)
-  {
-    EEPROM.put(addr,millis());
-    delay(200);
-    addr += sizeof(float);
-  }
-  else if(addr <  EEPROM.length() - sizeof(float))
-  {
-    pSensor.read();
-    EEPROM.put(addr,pSensor.depth());
-    delay(200);
-    addr += sizeof(float);
-  }
   
   while(!imu->IMURead());
   //Read sensor inputs
-  
+  pSensor.read();
   
   fusion.newIMUData(imu->getGyro(), imu->getAccel(), imu->getCompass(), imu->getTimestamp());
 
   rpy = fusion.getFusionPose();
 
+  
+  
   //X Y Z IS INCORRECTLY ALIGNED, MUST TEST AUV FOR REAL CONFIGURATION
   roll = rpy.y()*100;    //value decreases when side with motors 1 and 3 drops lower, value increases when side with motors 2 and 4 drops lower
   pitch = rpy.x()*100;   //value decreses pitching down, increases pitching up
@@ -219,16 +213,22 @@ void loop() {
   //meters to cm
   cDepthErr = (currentDepth*100) - (targetDepth*100); //pdif: +ve = lower than target, -ve = higher than target
 
-  
-//  pid3Adj = -(cYawErr*pGainYaw + (cYawErr - pYawErr)*dGainYaw); //yaw
-//  pid4Adj = cYawErr*pGainYaw + (cYawErr - pYawErr)*dGainYaw; //yaw
+ 
 
 //APPEARS TO WORK CORRECTLY
     pid5Adj = cDepthErr*pGainDepth + (cDepthErr - pDepthErr)*dGainDepth; // depth
 
 //NEITHER PITCH NOR ROLL WORKS CORRECTLY
-    pid1Adj = /*-(cRollErr*pGainRoll + (cRollErr - pRollErr)*dGainRoll) +*/ cPitchErr*pGainPitch + (cPitchErr - pPitchErr)*dGainPitch; //roll+pitch
-    pid2Adj =  /*cRollErr*pGainRoll + (cRollErr - pRollErr)*dGainRoll +*/ cPitchErr*pGainPitch + (cPitchErr - pPitchErr)*dGainPitch; //roll+pitch
+    rollAdj = cRollErr*pGainRoll + (cRollErr - pRollErr)*dGainRoll;
+    pitchAdj = cPitchErr*pGainPitch + (cPitchErr - pPitchErr)*dGainPitch;
+    yawAdj = cYawErr*pGainYaw + (cYawErr - pYawErr)*dGainYaw;
+
+    pid1Adj = -rollAdj + pitchAdj; //roll+pitch
+    pid2Adj =  rollAdj + pitchAdj; //roll+pitch
+
+    pid3Adj = yawAdj;
+
+    pid4Adj = -yawAdj;
 
   //speed is in centimeters per second, directly based on how many cemtimeters away the robot is
   // targetVelocity = pDiff/2 cm/s;
@@ -239,48 +239,56 @@ void loop() {
   //Gauge speed of robot
   
   //for every cm away robot is, target velocity is that distance per second
+  
 
-  prop5Output = T5_BASE + pid5Adj;
-
-  if(prop5Output > 1525)
-  {
-    prop1Output = 1525 + 0.5*(prop5Output - 1525) + pid1Adj;
-    prop2Output = 1525 + 0.5*(prop5Output - 1525) + pid2Adj;
-  }
-  else
-  {
-    prop1Output = 1525 + pid1Adj;
-    prop2Output = 1525 + pid2Adj;
-  }
+  
+  prop5Output = t5_base + pid5Adj;
+  prop1Output = t1_base + pid1Adj;
+  prop2Output = t2_base + pid2Adj;
+  prop3Output = 1470 - pid3Adj;
+  prop4Output = 1470 - pid4Adj;
   //if output falls intgo dead zone, change instead to corresponding reverse thrust value
-  
 
+/*
+  if(prop1Output < 1525)
+    prop1Output -= 50 - bandwidth;
+  if(prop2Output < 1525)
+    prop2Output -= 50 - bandwidth;
   if(prop5Output < 1535)
-  {
-    prop5Output = 1535;
-  }
-  if(prop1Output < 1535)
-  {
-    prop1Output = 1535;
-  }
-  if(prop2Output < 1535)
-  {
-    prop2Output = 1535;
-  }
-  
+    prop5Output -= 50 - bandwidth;
+
+  if(prop1Output > 1525)
+    prop1Output -= bandwidth;
+  if(prop2Output > 1525)
+    prop2Output -= bandwidth;
+  if(prop5Output > 1535)
+    prop5Output -= bandwidth;
+  */
  
   if(prop5Output > 1600)
-  {
     prop5Output = 1600;
-  }
   if(prop1Output > 1600)
-  {
     prop1Output = 1600;
-  }
   if(prop2Output > 1600)
-  {
     prop2Output = 1600;
-  }
+    
+  if(prop3Output < 1400)
+    prop3Output = 1400;
+  if(prop4Output < 1400)
+    prop4Output = 1400;
+
+  if(prop5Output < 1525)
+    prop5Output = 1525;
+  if(prop1Output < 1525)
+    prop1Output = 1525;
+  if(prop2Output < 1525)
+    prop2Output = 1525;
+    
+  if(prop3Output > 1475)
+    prop3Output = 1475;
+  if(prop4Output > 1475)
+    prop4Output = 1475;
+
 
   
   //set the system update rate, comment out for fastest possible
@@ -289,8 +297,27 @@ void loop() {
   //update all motors after adjustment
   prop1.writeMicroseconds(prop1Output);
   prop2.writeMicroseconds(prop2Output);
-  //prop3.writeMicroseconds(prop3Hover);
-  //prop4.writeMicroseconds(prop4Hover);
+  prop3.writeMicroseconds(prop3Output);
+  prop4.writeMicroseconds(prop4Output);
   prop5.writeMicroseconds(prop5Output);
-  //prop6.writeMicroseconds(prop6Hover);
+
+  
+  
+
+
+  previousMilli = currentMilli;
+  currentMilli = millis();
+  if(cycleCount == 20)
+  {
+    int dep = currentDepth*100;
+    cycleCount = 0;
+    if(addr <  EEPROM.length() - sizeof(int))
+    {
+      EEPROM.put(addr,rpy.z());
+      EEPROM.put(addr+sizeof(float),dep);
+      //EEPROM.put(addr+2*sizeof(int),cDepthErr);
+      addr += sizeof(int) + sizeof(float);
+    }
+  }
+  cycleCount++;
 }
