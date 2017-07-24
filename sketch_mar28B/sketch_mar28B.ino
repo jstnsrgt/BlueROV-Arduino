@@ -111,7 +111,7 @@ void setup() {
   fusion.setGyroEnable(true);
   fusion.setAccelEnable(true);
   fusion.setCompassEnable(true);
-
+  while(!imu->IMURead());
   fusion.newIMUData(imu->getGyro(), imu->getAccel(), imu->getCompass(), imu->getTimestamp());
   rpy = fusion.getFusionPose();
 
@@ -144,6 +144,18 @@ void setup() {
   delay(10000);
   //ten second buffer to stabilise speed controllers and also in case of program upload
 
+  pitch = 0.0;
+  
+  // wait for pitch values to settle (longest settling time)
+  while((abs(pitch) > (abs(setPitch) + 0.1)) || (abs(pitch) < (abs(setPitch) - 0.1)))
+  {
+      while(!imu->IMURead());
+      fusion.newIMUData(imu->getGyro(), imu->getAccel(), imu->getCompass(), imu->getTimestamp());
+      rpy = fusion.getFusionPose();
+      pitch = rpy.x() * 100;
+      delay(100);
+  }
+  
   pSensor.init();
   pSensor.setFluidDensity(FRESHWATER);
   
@@ -157,7 +169,7 @@ void setup() {
 
   pSensor.read();                               //read pressure sensor
   currentDepth = startDepth = pSensor.depth();  //set initial depth  
-  targetDepth = startDepth - 0.10;              //set target depth
+  targetDepth = startDepth - 0.25;              //set target depth
   
   currentMilli = millis(); //begin tracking time
   
@@ -226,9 +238,9 @@ void loop() {
     pid1Adj = -rollAdj + pitchAdj; //roll+pitch
     pid2Adj =  rollAdj + pitchAdj; //roll+pitch
 
-    pid3Adj = yawAdj;
+    pid3Adj = -yawAdj;
 
-    pid4Adj = -yawAdj;
+    pid4Adj = yawAdj;
 
   //speed is in centimeters per second, directly based on how many cemtimeters away the robot is
   // targetVelocity = pDiff/2 cm/s;
@@ -243,10 +255,10 @@ void loop() {
 
   
   prop5Output = t5_base + pid5Adj;
-  prop1Output = t1_base + pid1Adj;
-  prop2Output = t2_base + pid2Adj;
-  prop3Output = 1470 - pid3Adj;
-  prop4Output = 1470 - pid4Adj;
+  prop1Output = 1525 + (prop5Output - 1525)*0.3 + pid1Adj;
+  prop2Output = 1525 + (prop5Output - 1525)*0.3 + pid1Adj;
+  prop3Output = 1475 - pid3Adj;
+  prop4Output = 1475 - pid4Adj;
   //if output falls intgo dead zone, change instead to corresponding reverse thrust value
 
 /*
@@ -285,10 +297,14 @@ void loop() {
     prop2Output = 1525;
     
   if(prop3Output > 1475)
-    prop3Output = 1475;
+    prop3Output += 50;
   if(prop4Output > 1475)
-    prop4Output = 1475;
+    prop4Output += 50;
 
+if(prop3Output > 1475)
+    prop3Output += 50;
+  if(prop4Output > 1475)
+    prop4Output += 50;
 
   
   //set the system update rate, comment out for fastest possible
@@ -297,8 +313,8 @@ void loop() {
   //update all motors after adjustment
   prop1.writeMicroseconds(prop1Output);
   prop2.writeMicroseconds(prop2Output);
-  prop3.writeMicroseconds(prop3Output);
-  prop4.writeMicroseconds(prop4Output);
+  //prop3.writeMicroseconds(prop3Output);
+  //prop4.writeMicroseconds(prop4Output);
   prop5.writeMicroseconds(prop5Output);
 
   
@@ -307,16 +323,20 @@ void loop() {
 
   previousMilli = currentMilli;
   currentMilli = millis();
-  if(cycleCount == 20)
+  if(cycleCount == 10)
   {
     int dep = currentDepth*100;
     cycleCount = 0;
-    if(addr <  EEPROM.length() - sizeof(int))
+    if(addr <  EEPROM.length() - 8*sizeof(int))
     {
-      EEPROM.put(addr,rpy.z());
-      EEPROM.put(addr+sizeof(float),dep);
-      //EEPROM.put(addr+2*sizeof(int),cDepthErr);
-      addr += sizeof(int) + sizeof(float);
+      EEPROM.put(addr,rpy.y());
+      EEPROM.put(addr+sizeof(float),cRollErr);
+      EEPROM.put(addr+sizeof(float) + sizeof(int),rollAdj);
+      addr += 2*sizeof(int) + sizeof(float);
+      EEPROM.put(addr,rpy.x());
+      EEPROM.put(addr+sizeof(float),cPitchErr);
+      EEPROM.put(addr+sizeof(float) + sizeof(int),pitchAdj);
+      addr += 2*sizeof(int) + sizeof(float);
     }
   }
   cycleCount++;
