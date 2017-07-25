@@ -37,13 +37,7 @@ void setup() {
 }
 
 void loop() {
-  prop3.writeMicroseconds(MOTOR_STOP);
-  prop4.writeMicroseconds(MOTOR_STOP);
-  delay(2000);
-  for(int i = 0; i < 4; i++)
-  {
-    prop3.writeMicroseconds(getMicrosecondsForward(5 + i*5));
-    prop4.writeMicroseconds(getMicrosecondsForward(5 + i*5));
-    delay(2000);
-  }
+  prop3.writeMicroseconds(getMicrosecondsBackward(10));
+  prop4.writeMicroseconds(getMicrosecondsBackward(10));
+  
 }

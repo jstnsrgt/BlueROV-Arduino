@@ -32,7 +32,7 @@ byte propPin4 = 5;
 byte propPin5 = 6;
 byte propPin6 = 7;
 
-int bandwidth = 5;
+int bandwidth = 5; // used for adding a dead band to bi-directional thruster code
 
 float setRoll, setPitch, setYaw; //target
 float roll, pitch, yaw;
@@ -40,20 +40,22 @@ int cRollErr,cPitchErr,cYawErr; //current
 int pRollErr,pPitchErr,pYawErr; //previous
 
 //depth error values
-int cDepthErr; //current
-int pDepthErr; //previous
+int cDepthErr, pDepthErr; //current + previous
 
 //stores control system output for each thruster
-int pid1Adj;
-int pid2Adj;
-int pid3Adj;
-int pid4Adj;
-int pid5Adj; 
+int pid1Adj, pid2Adj, pid3Adj, pid4Adj, pid5Adj; 
 
 int rollAdj, pitchAdj, yawAdj;
 
+volatile bool m_left = false;
+volatile bool m_right = false;
 
+volatile int interruptTime;
 
+//values in milliseconds
+int stateRuntimeHover = 1000;
+int stateRuntimeBack = 2000;
+int stateRuntimeTurn = 3000;
 
 //raw depth values
 float currentDepth, previousDepth;
@@ -64,8 +66,7 @@ int currentMilli, previousMilli;
 int cycleCount = 0;
 int addr = 0;
 // depth tracking values
-float targetDepth;
-float startDepth;
+float targetDepth, startDepth;
 
 // close approximation stable start values
 int t5_base = T5_BASE;
@@ -74,8 +75,7 @@ int t2_base = T2_BASE;
 int prop1Output = T1_BASE;
 int prop2Output = T2_BASE;
 int prop5Output = T5_BASE;
-int prop3Output;
-int prop4Output;
+int prop3Output, prop4Output;
 
 //gains may be implemented again
 float pGainRoll = 0.2; //set the gain for the speed based on the level correction changes
@@ -96,6 +96,11 @@ Servo prop5;
 Servo prop6;
 
 void setup() {
+  pinMode(18, INPUT_PULLUP);
+  pinMode(19, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(18),isrRight,RISING); //right side active hig
+  attachInterrupt(digitalPinToInterrupt(19),isrLeft,RISING); //left side active high
+  
   Wire.begin(); //for I2C communication with pressure and IMU sensors
 
   // create the imu object
@@ -125,7 +130,7 @@ void setup() {
   
   
   pinMode(13,OUTPUT); //Ready LED
-
+  
   //assign servo objects to their corresponding output pins
   prop1.attach(propPin1);
   prop2.attach(propPin2);
@@ -186,6 +191,38 @@ void setup() {
   
 }
 void loop() {
+//values in milliseconds
+
+  prop3Output = getMicrosecondsBackward(10);
+  prop4Output = getMicrosecondsBackward(10);
+  if(m_left || m_right)
+  {
+    if(stateRuntimeHover < millis - interruptTime)
+    {
+      prop3Output = MOTOR_STOP;
+      prop4Output = MOTOR_STOP;
+    }
+    else if(stateRuntimeBack < millis - interruptTime)
+    {
+      prop3Output = getMicrosecondsForward(10);
+      prop4Output = getMicrosecondsForward(10);
+    }
+    else if(stateRuntimeTurn < millis - interruptTime)
+    {
+      if(m_left)
+      {
+        prop3Output = getMicrosecondsBackward(10);
+        prop4Output = getMicrosecondsForward(10);
+      }
+      else if(m_right)
+      {
+        prop3Output = getMicrosecondsForward(10);
+        prop4Output = getMicrosecondsBackward(10);
+      }
+    }
+    else
+      m_left = m_right = false;
+  }
   
   while(!imu->IMURead());
   //Read sensor inputs
@@ -257,8 +294,8 @@ void loop() {
   prop5Output = t5_base + pid5Adj;
   prop1Output = 1525 + (prop5Output - 1525)*0.3 + pid1Adj;
   prop2Output = 1525 + (prop5Output - 1525)*0.3 + pid1Adj;
-  prop3Output = 1475 - pid3Adj;
-  prop4Output = 1475 - pid4Adj;
+  //prop3Output = 1475 - pid3Adj;
+  //prop4Output = 1475 - pid4Adj;
   //if output falls intgo dead zone, change instead to corresponding reverse thrust value
 
 /*
@@ -283,38 +320,34 @@ void loop() {
     prop1Output = 1600;
   if(prop2Output > 1600)
     prop2Output = 1600;
-    
+/*    
   if(prop3Output < 1400)
     prop3Output = 1400;
   if(prop4Output < 1400)
     prop4Output = 1400;
-
+*/
   if(prop5Output < 1525)
     prop5Output = 1525;
   if(prop1Output < 1525)
     prop1Output = 1525;
   if(prop2Output < 1525)
     prop2Output = 1525;
-    
+   /* 
   if(prop3Output > 1475)
     prop3Output += 50;
   if(prop4Output > 1475)
     prop4Output += 50;
-
-if(prop3Output > 1475)
-    prop3Output += 50;
-  if(prop4Output > 1475)
-    prop4Output += 50;
-
+*/
   
   //set the system update rate, comment out for fastest possible
   //while(millis() - currentMilli < 200);
   
   //update all motors after adjustment
+  
   prop1.writeMicroseconds(prop1Output);
   prop2.writeMicroseconds(prop2Output);
-  //prop3.writeMicroseconds(prop3Output);
-  //prop4.writeMicroseconds(prop4Output);
+  prop3.writeMicroseconds(prop3Output);
+  prop4.writeMicroseconds(prop4Output);
   prop5.writeMicroseconds(prop5Output);
 
   
@@ -323,10 +356,9 @@ if(prop3Output > 1475)
 
   previousMilli = currentMilli;
   currentMilli = millis();
-  if(cycleCount == 10)
+  if(cycleCount % 10 == 0)
   {
     int dep = currentDepth*100;
-    cycleCount = 0;
     if(addr <  EEPROM.length() - 8*sizeof(int))
     {
       EEPROM.put(addr,rpy.y());
@@ -340,4 +372,16 @@ if(prop3Output > 1475)
     }
   }
   cycleCount++;
+}
+
+void isrLeft()
+{
+  interruptTime = millis();
+  m_left = true;
+}
+
+void isrRight()
+{
+  interruptTime = millis();
+  m_right = true;
 }
