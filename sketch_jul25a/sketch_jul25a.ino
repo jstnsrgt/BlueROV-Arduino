@@ -13,6 +13,6 @@ void loop() {
   // put your main code here, to run repeatedly:
   Serial.print(digitalRead(19));
   Serial.print("\t");
-  Serial.println(digitalRead(19));
+  Serial.println(digitalRead(18));
   delay(1000);
 }

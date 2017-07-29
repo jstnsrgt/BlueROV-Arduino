@@ -1,4 +1,4 @@
-#include <MS5837.h>
+b#include <MS5837.h>
 #include <Servo.h>
 #include <Wire.h>
 #include "Conversions.h"
@@ -10,6 +10,11 @@
 #include "RTIMU.h"
 #include "RTFusionRTQF.h" 
 #include "CalLib.h"
+
+
+#define TIME_FWD 8000
+#define TIME_REV 3000
+#define TIME_CW 5000
 
 RTIMU *imu;                                           // the IMU object
 RTFusionRTQF fusion;                                  // the fusion object
@@ -47,15 +52,16 @@ int pid1Adj, pid2Adj, pid3Adj, pid4Adj, pid5Adj;
 
 int rollAdj, pitchAdj, yawAdj;
 
-volatile bool m_left = false;
-volatile bool m_right = false;
+volatile bool frontLeftSwitch = false;
+volatile bool frontRightSwitch = false;
+
+
+//values in milliseconds
+unsigned long timePassed = 0;
+
 
 volatile int interruptTime;
 
-//values in milliseconds
-int stateRuntimeHover = 1000;
-int stateRuntimeBack = 2000;
-int stateRuntimeTurn = 3000;
 
 //raw depth values
 float currentDepth, previousDepth;
@@ -65,6 +71,7 @@ int currentMilli, previousMilli;
 
 int cycleCount = 0;
 int addr = 0;
+bool eso = false;
 // depth tracking values
 float targetDepth, startDepth;
 
@@ -78,11 +85,11 @@ int prop5Output = T5_BASE;
 int prop3Output, prop4Output;
 
 //gains may be implemented again
-float pGainRoll = 0.2; //set the gain for the speed based on the level correction changes
+float pGainRoll = 0.3; //set the gain for the speed based on the level correction changes
 float pGainPitch = 0.3; //set the gain for the speed based on the level correction changes
 float pGainYaw = 0.7; //set the gain for the speed based on the level correction changes
-float dGainRoll = 3; //set the gain for the speed based on the level correction changes
-float dGainPitch = 3; //set the gain for the speed based on the level correction change
+float dGainRoll = 1; //set the gain for the speed based on the level correction changes
+float dGainPitch = 1; //set the gain for the speed based on the level correction change
 float dGainYaw = 2; //set the gain for the speed based on the level correction changes
 float pGainDepth = 1; //set the gain for the PID speed based on the vertical equilibrium changes
 float dGainDepth = 2; //
@@ -96,10 +103,7 @@ Servo prop5;
 Servo prop6;
 
 void setup() {
-  pinMode(18, INPUT_PULLUP);
-  pinMode(19, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(18),isrRight,RISING); //right side active hig
-  attachInterrupt(digitalPinToInterrupt(19),isrLeft,RISING); //left side active high
+  //Serial.begin(115200);
   
   Wire.begin(); //for I2C communication with pressure and IMU sensors
 
@@ -126,9 +130,12 @@ void setup() {
   setYaw = rpy.z()*100;
   
   //initialise pressure sensor
-  
-  
-  
+  /*
+  for (int i = 0 ; i < EEPROM.length() ; i++) 
+  {
+    EEPROM.write(i, 0);
+  }
+  */
   pinMode(13,OUTPUT); //Ready LED
   
   //assign servo objects to their corresponding output pins
@@ -146,7 +153,7 @@ void setup() {
   prop4.writeMicroseconds(MOTOR_STOP);
   prop5.writeMicroseconds(MOTOR_STOP);
   prop6.writeMicroseconds(MOTOR_STOP);
-  delay(10000);
+  //delay(5000);
   //ten second buffer to stabilise speed controllers and also in case of program upload
 
   pitch = 0.0;
@@ -161,6 +168,7 @@ void setup() {
       delay(100);
   }
   
+  
   pSensor.init();
   pSensor.setFluidDensity(FRESHWATER);
   
@@ -174,7 +182,7 @@ void setup() {
 
   pSensor.read();                               //read pressure sensor
   currentDepth = startDepth = pSensor.depth();  //set initial depth  
-  targetDepth = startDepth - 0.25;              //set target depth
+  targetDepth = startDepth - 0.35;              //set target depth
   
   currentMilli = millis(); //begin tracking time
   
@@ -187,42 +195,71 @@ void setup() {
   
   //calculate first depth error value
   cDepthErr = (currentDepth*100) - (targetDepth*100); //pdif: +ve = lower than target, -ve = higher than target
-  
-  
+
+
+  pinMode(18, INPUT_PULLUP);
+  pinMode(19, INPUT_PULLUP);
+
+  attachInterrupt(digitalPinToInterrupt(19),frontRight, FALLING);
+  attachInterrupt(digitalPinToInterrupt(18),frontLeft, FALLING);
+  timePassed = 0;
 }
 void loop() {
+  /*
+  Serial.print(digitalRead(18));
+  Serial.print("\t");
+  Serial.println(digitalRead(19));
+  delay(500);
+  */
 //values in milliseconds
+  /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  prop3Output = getMicrosecondsBackward(10);
-  prop4Output = getMicrosecondsBackward(10);
-  if(m_left || m_right)
-  {
-    if(stateRuntimeHover < millis - interruptTime)
+  // routine to control obstacle avoidance for front two bumpers 
+  
+  previousMilli = currentMilli;
+  currentMilli = millis();
+  
+    // time passed since activating microswitch                                                     ///  
+  timePassed += (currentMilli - previousMilli);
+
+  if(frontLeftSwitch || frontRightSwitch)
+  {                                                                                            ///
+  // FORWARD
+    if (timePassed < TIME_FWD)                                                                          ///
     {
-      prop3Output = MOTOR_STOP;
-      prop4Output = MOTOR_STOP;
-    }
-    else if(stateRuntimeBack < millis - interruptTime)
+      prop3.writeMicroseconds(T3_FORWARD);   // FWD                                           ///
+      prop4.writeMicroseconds(T4_FORWARD);   // FWD
+    }                                                                                               ///
+    else if (timePassed >= TIME_FWD && timePassed < TIME_FWD + TIME_REV)                                               ///
     {
-      prop3Output = getMicrosecondsForward(10);
-      prop4Output = getMicrosecondsForward(10);
+      prop3.writeMicroseconds(T3_BACKWARD);                                                              ///
+      prop4.writeMicroseconds(T4_BACKWARD);
+      if(frontLeftSwitch)
+        prop6.writeMicroseconds(T6_POWER_FORWARD);
+      else if(frontRightSwitch)
+        prop6.writeMicroseconds(T6_POWER_BACK);///
     }
-    else if(stateRuntimeTurn < millis - interruptTime)
+    else if(timePassed >= TIME_FWD + TIME_REV && timePassed < TIME_FWD + TIME_REV + TIME_CW)
     {
-      if(m_left)
-      {
-        prop3Output = getMicrosecondsBackward(10);
-        prop4Output = getMicrosecondsForward(10);
-      }
-      else if(m_right)
-      {
-        prop3Output = getMicrosecondsForward(10);
-        prop4Output = getMicrosecondsBackward(10);
-      }
+      prop6.writeMicroseconds(MOTOR_STOP);
+      prop3.writeMicroseconds(T3_TURN_CW);                                                              ///
+      prop4.writeMicroseconds(T4_TURN_CW);
     }
-    else
-      m_left = m_right = false;
-  }
+    // obstacle avoidance complete: reset variables to enable interrupts for next encounter
+    else                                                                                            ///
+    {
+      frontLeftSwitch = false;
+      frontRightSwitch = false;
+      prop6.writeMicroseconds(MOTOR_STOP);
+      prop3.writeMicroseconds(MOTOR_STOP);
+      prop4.writeMicroseconds(MOTOR_STOP);
+      timePassed = 0;
+      eso = !eso;///
+    }
+    
+}                                                                                             
+  
+  /////////////////////////////////////////////////////////////////////////////////////////////////////
   
   while(!imu->IMURead());
   //Read sensor inputs
@@ -276,7 +313,6 @@ void loop() {
     pid2Adj =  rollAdj + pitchAdj; //roll+pitch
 
     pid3Adj = -yawAdj;
-
     pid4Adj = yawAdj;
 
   //speed is in centimeters per second, directly based on how many cemtimeters away the robot is
@@ -293,7 +329,7 @@ void loop() {
   
   prop5Output = t5_base + pid5Adj;
   prop1Output = 1525 + (prop5Output - 1525)*0.3 + pid1Adj;
-  prop2Output = 1525 + (prop5Output - 1525)*0.3 + pid1Adj;
+  prop2Output = 1525 + (prop5Output - 1525)*0.3 + pid2Adj;
   //prop3Output = 1475 - pid3Adj;
   //prop4Output = 1475 - pid4Adj;
   //if output falls intgo dead zone, change instead to corresponding reverse thrust value
@@ -320,24 +356,14 @@ void loop() {
     prop1Output = 1600;
   if(prop2Output > 1600)
     prop2Output = 1600;
-/*    
-  if(prop3Output < 1400)
-    prop3Output = 1400;
-  if(prop4Output < 1400)
-    prop4Output = 1400;
-*/
+   
   if(prop5Output < 1525)
     prop5Output = 1525;
   if(prop1Output < 1525)
     prop1Output = 1525;
   if(prop2Output < 1525)
     prop2Output = 1525;
-   /* 
-  if(prop3Output > 1475)
-    prop3Output += 50;
-  if(prop4Output > 1475)
-    prop4Output += 50;
-*/
+    
   
   //set the system update rate, comment out for fastest possible
   //while(millis() - currentMilli < 200);
@@ -346,16 +372,20 @@ void loop() {
   
   prop1.writeMicroseconds(prop1Output);
   prop2.writeMicroseconds(prop2Output);
-  prop3.writeMicroseconds(prop3Output);
-  prop4.writeMicroseconds(prop4Output);
+  //prop3.writeMicroseconds(prop3Output);
+  //prop4.writeMicroseconds(prop4Output);
   prop5.writeMicroseconds(prop5Output);
 
-  
-  
+/*
+  if (frontLeftSwitch == false && frontRightSwitch == false)
+  {
+    prop3.writeMicroseconds(1456);
+    prop4.writeMicroseconds(1456);
+  }
+ */
 
 
-  previousMilli = currentMilli;
-  currentMilli = millis();
+  /*
   if(cycleCount % 10 == 0)
   {
     int dep = currentDepth*100;
@@ -370,18 +400,31 @@ void loop() {
       EEPROM.put(addr+sizeof(float) + sizeof(int),pitchAdj);
       addr += 2*sizeof(int) + sizeof(float);
     }
-  }
+  }*/
   cycleCount++;
 }
 
-void isrLeft()
+
+void frontLeft()                                                                      //
 {
-  interruptTime = millis();
-  m_left = true;
+  // only activate obstacle avoidance if not already avoiding obstacle
+  if (frontLeftSwitch == false && frontRightSwitch == false)
+  {                                                                                   //
+    prop3.writeMicroseconds(MOTOR_STOP);
+    prop4.writeMicroseconds(MOTOR_STOP);
+    frontLeftSwitch = true;                                                           
+  }                                                                                   //
 }
 
-void isrRight()
+// right bumper interrupt function
+void frontRight()                                                                     //
 {
-  interruptTime = millis();
-  m_right = true;
+  // only activate obstacle avoidance if not already avoiding obstacle
+  if (frontLeftSwitch == false && frontRightSwitch == false)  
+  {                                                                                   //
+    prop3.writeMicroseconds(MOTOR_STOP);
+    prop4.writeMicroseconds(MOTOR_STOP);
+    frontRightSwitch = true;                                                              
+  }                                                                                   //
 }
+

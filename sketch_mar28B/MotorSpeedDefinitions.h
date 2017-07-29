@@ -1,13 +1,16 @@
 #define MOTOR_STOP 1500
 
-#define T3_FORWARD 1544
-#define T4_FORWARD 1544
-#define T3_BACKWARD 1456
-#define T4_BACKWARD 1456
-#define T3_TURN_CW 1544
-#define T4_TURN_CW 1456
-#define T3_TURN_ACW 1456
-#define T4_TURN_ACW 1544
+#define T3_FORWARD 1438
+#define T4_FORWARD 1438
+#define T3_BACKWARD 1535
+#define T4_BACKWARD 1535
+#define T3_TURN_CW 1420
+#define T4_TURN_CW 1580
+#define T3_TURN_ACW 1580
+#define T4_TURN_ACW 1420
+#define T6_POWER_BACK 1620
+#define T6_POWER_FORWARD 1380
+
 
 #define T5_BASE 1565
 #define T1_BASE 1545

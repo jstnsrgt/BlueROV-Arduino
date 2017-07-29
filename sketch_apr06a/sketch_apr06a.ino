@@ -37,6 +37,7 @@ void setup() {
 }
 
 void loop() {
+  /*
   // put your main code here, to run repeatedly:
   prop1.writeMicroseconds(getMicrosecondsForward(5));
   delay(500);
@@ -62,10 +63,10 @@ void loop() {
   delay(500);
   prop5.writeMicroseconds(MOTOR_STOP);
   delay(2000);
-  
+  */
   prop6.writeMicroseconds(getMicrosecondsForward(5));
-  delay(500);
-  prop6.writeMicroseconds(MOTOR_STOP);
+  delay(2000);
+  prop6.writeMicroseconds(getMicrosecondsBackward(5));
   delay(2000);
   
 }
