@@ -12,7 +12,7 @@ b#include <MS5837.h>
 #include "CalLib.h"
 
 
-#define TIME_FWD 8000
+#define TIME_STOP 1000
 #define TIME_REV 3000
 #define TIME_CW 5000
 
@@ -200,10 +200,12 @@ void setup() {
   pinMode(18, INPUT_PULLUP);
   pinMode(19, INPUT_PULLUP);
 
-  attachInterrupt(digitalPinToInterrupt(19),frontRight, FALLING);
-  attachInterrupt(digitalPinToInterrupt(18),frontLeft, FALLING);
+  attachInterrupt(digitalPinToInterrupt(18),frontRight, FALLING);
+  attachInterrupt(digitalPinToInterrupt(19),frontLeft, FALLING);
   timePassed = 0;
 }
+
+
 void loop() {
   /*
   Serial.print(digitalRead(18));
@@ -225,12 +227,12 @@ void loop() {
   if(frontLeftSwitch || frontRightSwitch)
   {                                                                                            ///
   // FORWARD
-    if (timePassed < TIME_FWD)                                                                          ///
+    if (timePassed < TIME_STOP)                                                                          ///
     {
-      prop3.writeMicroseconds(T3_FORWARD);   // FWD                                           ///
-      prop4.writeMicroseconds(T4_FORWARD);   // FWD
+      prop3.writeMicroseconds(MOTOR_STOP);
+      prop4.writeMicroseconds(MOTOR_STOP);
     }                                                                                               ///
-    else if (timePassed >= TIME_FWD && timePassed < TIME_FWD + TIME_REV)                                               ///
+    else if (timePassed >= TIME_STOP && timePassed < TIME_STOP + TIME_REV)                                               ///
     {
       prop3.writeMicroseconds(T3_BACKWARD);                                                              ///
       prop4.writeMicroseconds(T4_BACKWARD);
@@ -239,11 +241,19 @@ void loop() {
       else if(frontRightSwitch)
         prop6.writeMicroseconds(T6_POWER_BACK);///
     }
-    else if(timePassed >= TIME_FWD + TIME_REV && timePassed < TIME_FWD + TIME_REV + TIME_CW)
+    else if(timePassed >= TIME_STOP + TIME_REV && timePassed < TIME_STOP + TIME_REV + TIME_CW)
     {
       prop6.writeMicroseconds(MOTOR_STOP);
-      prop3.writeMicroseconds(T3_TURN_CW);                                                              ///
-      prop4.writeMicroseconds(T4_TURN_CW);
+      if(frontLeftSwitch)
+      {
+        prop3.writeMicroseconds(T3_TURN_CW);                                                              ///
+        prop4.writeMicroseconds(T4_TURN_CW);
+      }
+      else if(frontRightSwitch)
+      {
+        prop3.writeMicroseconds(T3_TURN_ACW);                                                              ///
+        prop4.writeMicroseconds(T4_TURN_ACW);
+      }
     }
     // obstacle avoidance complete: reset variables to enable interrupts for next encounter
     else                                                                                            ///
@@ -256,8 +266,12 @@ void loop() {
       timePassed = 0;
       eso = !eso;///
     }
-    
-}                                                                                             
+  }
+  else
+  {
+    prop3.writeMicroseconds(T3_FORWARD);   // FWD                                           ///
+    prop4.writeMicroseconds(T4_FORWARD);                                                                                              
+  }
   
   /////////////////////////////////////////////////////////////////////////////////////////////////////
   
