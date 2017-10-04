@@ -32,3 +32,24 @@ Example code for new accelerometer/gyro/mag
 
 May 17th A - 11
 Bluetooth com port code
+
+Jun 11th A - 12
+Exploring new code base, this iteration was scrapped
+
+Jul 10th B - 13
+Experiments with roll and pitch
+
+Jul 25th A - 14
+Microswitch testing program
+
+Aug 22nd A - 15
+New code base, object oriented setup
+
+Sep 21st A - 16
+Bluno integration attempt into new code base
+
+Sep 28th A - 17
+Bluno testing, motor control, servo objects
+
+Oct 2nd A - 18
+Bluno testing, motor control, raw PWM functions
