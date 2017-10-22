@@ -446,10 +446,8 @@ bool RTIMUMPU9150::IMURead()
     unsigned int count;
     unsigned char fifoData[12];
     unsigned char compassData[8];
-
     if (!I2Cdev::readBytes(m_slaveAddr, MPU9150_FIFO_COUNT_H, 2, fifoCount))
          return false;
-
     count = ((unsigned int)fifoCount[0] << 8) + fifoCount[1];
 
     if (count == 1024) {
@@ -457,7 +455,6 @@ bool RTIMUMPU9150::IMURead()
         m_timestamp += m_sampleInterval * (1024 / MPU9150_FIFO_CHUNK_SIZE + 1); // try to fix timestamp
         return false;
     }
-
     if (count > MPU9150_FIFO_CHUNK_SIZE * 40) {
         // more than 40 samples behind - going too slowly so discard some samples but maintain timestamp correctly
         while (count >= MPU9150_FIFO_CHUNK_SIZE * 10) {
@@ -467,34 +464,27 @@ bool RTIMUMPU9150::IMURead()
             m_timestamp += m_sampleInterval;
         }
     }
-
     if (count < MPU9150_FIFO_CHUNK_SIZE)
         return false;
-
     if (!I2Cdev::readBytes(m_slaveAddr, MPU9150_FIFO_R_W, MPU9150_FIFO_CHUNK_SIZE, fifoData))
         return false;
-
     if (!I2Cdev::readBytes(m_slaveAddr, MPU9150_EXT_SENS_DATA_00, m_compassDataLength, compassData))
         return false;
-
     RTMath::convertToVector(fifoData, m_accel, m_accelScale, true);
     RTMath::convertToVector(fifoData + 6, m_gyro, m_gyroScale, true);
-
     if (m_compassIs5883)
         RTMath::convertToVector(compassData, m_compass, 0.092f, true);
     else
         RTMath::convertToVector(compassData + 1, m_compass, 0.3f, false);
 
-
     //  sort out gyro axes
 
     m_gyro.setY(-m_gyro.y());
     m_gyro.setZ(-m_gyro.z());
-
+	
     //  sort out accel data;
 
     m_accel.setX(-m_accel.x());
-
     if (m_compassPresent) {
         if (m_compassIs5883) {
             //  sort out compass axes
@@ -526,7 +516,6 @@ bool RTIMUMPU9150::IMURead()
         m_compass.setY(0);
         m_compass.setZ(0);
     }
-
     //  now do standard processing
 
     handleGyroBias();
@@ -537,9 +526,7 @@ bool RTIMUMPU9150::IMURead()
         m_timestamp = millis();
     else
         m_timestamp += m_sampleInterval;
-
     m_firstTime = false;
-
     return true;
 }
 #endif

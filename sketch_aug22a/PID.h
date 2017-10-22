@@ -5,10 +5,10 @@
 #include "Control.h"
 
 //RESET THESE, use neutral bouyancy value
-#define T1_NEUTRAL 1540
-#define T2_NEUTRAL 1540
-#define T3_NEUTRAL 1540
-#define T4_NEUTRAL 1540
+#define T1_NEUTRAL 1460
+#define T2_NEUTRAL 1460
+#define T3_NEUTRAL 1460
+#define T4_NEUTRAL 1460
 
 //Contains all calculated variables used in the control system
 class PID : Control {

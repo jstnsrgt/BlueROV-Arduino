@@ -15,10 +15,10 @@ void setup() {
      EEPROM.get(addr,floatPrint);
      Serial.print(floatPrint);
      Serial.print("\t");
-     EEPROM.get(addr+sizeof(float),intPrint);
-     Serial.print(intPrint);
-     Serial.print("\t");
-     EEPROM.get(addr+sizeof(float) + sizeof(int),intPrint);
+     //EEPROM.get(addr+sizeof(float),intPrint);
+     //Serial.print(intPrint);
+     //Serial.print("\t");
+     //EEPROM.get(addr+sizeof(float) + sizeof(int),intPrint);
      Serial.print(intPrint);
      if(cycleCount == 1)
      {

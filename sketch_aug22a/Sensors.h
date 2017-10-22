@@ -18,11 +18,11 @@
 class Sensors {
 	private:
 		Data* d;
-		RTIMU *imu;                                           // the IMU object
-		RTFusionRTQF fusion;                                  // the fusion object
-		RTIMUSettings settings;                               // the settings object
+		RTIMU* imu;                                           // the IMU object
+		RTFusionRTQF* fusion;                                  // the fusion object
+		RTIMUSettings* settings;                               // the settings object
 		RTVector3 rpy;
-		MS5837 pSensor;
+		MS5837* pSensor;
 	public:
 	
 		Sensors(Data*);
