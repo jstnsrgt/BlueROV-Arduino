@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <MS5837.h>
 #include <Servo.h>
 #include <Wire.h>
@@ -11,6 +12,15 @@
 #include "RTFusionRTQF.h" 
 #include "CalLib.h"
 
+#define ROLL_RANGE 50
+#define PITCH_RANGE 50
+#define YAW_RANGE 50
+#define DEPTH_RANGE 30
+
+
+#define TEST_ROLL 0 //POSITIVE RIGHT, NEGATIVE LEFT
+#define TEST_PITCH 120 //POSITIVE FORWARD, NEGATIVE REVERSE
+#define YAW_TEST 0 //POSITIVE LEFT ROTATION, NEGATIVE RIGHT ROTATION
 
 RTIMU *imu;                                           // the IMU object
 RTFusionRTQF fusion;                                  // the fusion object
@@ -38,11 +48,12 @@ byte propPin4 = 5;
 
 //right test
 //int yawTest = -30;
-int yawTest = 0;
+int yawTest = YAW_TEST;
 
 
-float setRoll, setPitch, setYaw; //target
-float roll, pitch, yaw;
+int setRoll, setPitch, setYaw;
+int targetRoll, targetPitch, targetYaw;
+int roll, pitch, yaw;
 int cRollErr,cPitchErr,cYawErr; //current
 int pRollErr,pPitchErr,pYawErr; //previous
 
@@ -56,10 +67,10 @@ int pid1Adj, pid2Adj, pid3Adj, pid4Adj;
 
 int rollAdj, pitchAdj, yawAdj, depthAdj;
 
-float t1_base = T1_BASE;
-float t2_base = T1_BASE;
-float t3_base = T1_BASE;
-float t4_base = T1_BASE;
+int t1_base = T1_BASE;
+int t2_base = T1_BASE;
+int t3_base = T1_BASE;
+int t4_base = T1_BASE;
 
 int t1_output = (int)t1_base;
 int t2_output = (int)t2_base;
@@ -74,7 +85,7 @@ int currentDepth, previousDepth;
 int currentMilli, previousMilli;
 
 // depth tracking values
-int targetDepth, startDepth;
+int targetDepth, setDepth;
 
 // close approximation stable start values
 
@@ -94,9 +105,16 @@ Servo prop2;
 Servo prop3;
 Servo prop4;
 
-void setup() {
-  //Serial.begin(115200);
 
+bool serialError = false;
+volatile bool readSerial = false;
+
+
+
+void setup() {
+  Serial.begin(115200);
+  Serial2.begin(9600);
+  attachInterrupt(digitalPinToInterrupt(18) , s1Read , RISING);
   pinMode(13,OUTPUT); //Ready LED
   
   //assign servo objects to their corresponding output pins
@@ -115,12 +133,12 @@ void setup() {
   rpy = fusion.getFusionPose();
 
   //X Y Z IS INCORRECTLY ALIGNED, MUST TEST AUV FOR REAL CONFIGURATION
-  setRoll = rpy.x()*100;
-  setRoll += 50;
-  setPitch = rpy.y()*100;
-  //setPitch -= 50;
-  setYaw = rpy.z()*100;
-  
+  targetRoll = setRoll = rpy.x()*100;
+  setRoll += TEST_ROLL;
+  targetPitch = setPitch = rpy.y()*100;
+  setPitch -= TEST_PITCH;
+  targetYaw = rpy.z()*100;
+
   cRollErr = 0;
   cPitchErr = 0;
   cYawErr = 0;
@@ -142,7 +160,7 @@ void setup() {
  
   pSensor.read();
   currentDepth = pSensor.depth()*100;      //set initial depth in mm
-  targetDepth = currentDepth - 15;      //set target depth
+  setDepth = targetDepth = currentDepth - 30;      //set target depth
   cDepthErr = currentDepth - targetDepth; //pdif: +ve = lower than target, -ve = higher than target
   //currentPitch = 0;
   /*
@@ -160,7 +178,82 @@ void setup() {
 
 
 void loop() {
+  
+  if(readSerial == true)
+  {
+    Serial.println("Reading Serial");
+    Serial.println(Serial2.available());
+    
+    if(Serial2.available() > 0)
+    {
+      byte header = Serial2.read();
+      Serial.println(header);
+      Serial.println(header, BIN);
+      switch((int)header)
+      {
+        case 0:
+          Serial.println("Case 0");
+          if(Serial2.available() == 3)
+          {
+            uint8_t angleDeg = (Serial2.read()*360)/255;
+            uint8_t angleRad = angleDeg*DEG_TO_RAD;
+            uint8_t intensity = Serial2.read();
+            targetRoll = setRoll + (cos(angleRad)*intensity*ROLL_RANGE)/100;
+            targetDepth = setDepth + (sin(angleRad)*intensity*DEPTH_RANGE)/100;
+            Serial.println("Target Depth : ");
+            Serial.println(targetDepth);
 
+            int8_t fwd = Serial2.read();
+            targetPitch = setPitch - (fwd*PITCH_RANGE)/100;
+            Serial.println("Target Pitch : ");
+            Serial.println(targetPitch);
+          }
+          else
+            serialError = true;
+        break;
+        case 1:
+          Serial.println("Case 1");
+          if(Serial2.available() == 1)
+          {
+            int yaw = Serial2.read();
+            yawTest = (yaw*YAW_RANGE)/100;
+            Serial.println("Yaw : ");
+            Serial.println(yawTest);
+            Serial2.write(1);
+        break;
+          }
+          else
+            serialError = true;
+        break;
+        case 2:
+          Serial.println("Case 2");
+          targetRoll = setRoll;
+          targetPitch = setPitch;
+          targetYaw = setYaw;
+        break;
+        break;
+        case 3:
+          Serial.println("Case 3");
+          targetDepth = setDepth;
+          targetRoll = setRoll;
+          targetPitch = setPitch;
+          targetYaw = setYaw;
+        break;
+      }
+      Serial2.flush();
+    }
+    else
+      serialError = true;
+    if(serialError == true)
+    {
+      Serial2.write(0);
+      serialError = false;
+    }
+    else 
+      Serial2.write(1);
+    readSerial = false;
+  }
+  
   // routine to control obstacle avoidance for front two bumpers 
   
   previousMilli = currentMilli;
@@ -208,10 +301,55 @@ void loop() {
     pid3Adj = depthAdj -rollAdj +pitchAdj - yawTest;
     pid4Adj = depthAdj +rollAdj +pitchAdj + yawTest;
 
-    t1_output = (int)t1_base - pid1Adj;
-    t2_output = (int)t2_base - pid2Adj;
-    t3_output = (int)t3_base - pid3Adj;
-    t4_output = (int)t4_base - pid4Adj;
+    if(cDepthErr == 0 && depthAdj > 0)
+    {
+      t1_base++;
+      t2_base++;
+      t3_base++;
+      t4_base++;
+    }
+    else if(cDepthErr == 0 && depthAdj < 0)
+    {
+      t1_base--;
+      t2_base--;
+      t3_base--;
+      t4_base--;
+    }
+
+    if(cRollErr == 0 && rollAdj > 0)
+    {
+      t1_base--;
+      t2_base++;
+      t3_base--;
+      t4_base++;
+    }
+    else if(cRollErr == 0 && rollAdj < 0)
+    {
+      t1_base++;
+      t2_base--;
+      t3_base++;
+      t4_base--;
+    }
+
+    if(cPitchErr == 0 && pitchAdj > 0)
+    {
+      t1_base--;
+      t2_base--;
+      t3_base++;
+      t4_base++;
+    }
+    else if(cPitchErr == 0 && pitchAdj < 0)
+    {
+      t1_base++;
+      t2_base++;
+      t3_base--;
+      t4_base--;
+    }
+
+    t1_output = t1_base - pid1Adj;
+    t2_output = t2_base - pid2Adj;
+    t3_output = t3_base - pid3Adj;
+    t4_output = t4_base - pid4Adj;
 
     if(t1_output > 1472)
       t1_output = 1472;
@@ -231,21 +369,26 @@ void loop() {
     if(t4_output < 1300)
       t4_output = 1300;
 
-    prop1.writeMicroseconds(t1_output);
-    prop2.writeMicroseconds(t2_output);
-    prop3.writeMicroseconds(t3_output);
-    prop4.writeMicroseconds(t4_output);
+    
+
+    //prop1.writeMicroseconds(t1_output);
+    //prop2.writeMicroseconds(t2_output);
+    //prop3.writeMicroseconds(t3_output);
+    //prop4.writeMicroseconds(t4_output);
 
 /*
     Serial.println(rpy.z());
     */
 
     /*
-    Serial.println(pid1Adj);
-    Serial.println(pid2Adj);
-    Serial.println(pid3Adj);
-    Serial.println(pid4Adj);
-     */
+    Serial.println(cDepthErr);
+    Serial.println(cRollErr);
+    Serial.println(cPitchErr);
+    Serial.println(cYawErr);
+
+    Serial.println();
+*/
+    
     /*
     Serial.println(t1_output);
     Serial.println(t2_output);
@@ -256,4 +399,9 @@ void loop() {
     //Serial.println(currentMilli - previousMilli);
 }
 
+
+
+void s1Read() {
+  readSerial = true;
+}
 
